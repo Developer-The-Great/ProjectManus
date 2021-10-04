@@ -7,7 +7,20 @@
 		{
 			"Name": "ProjectManus",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Manus",
+			"Enabled": true
+		},
+		{
+			"Name": "OSC",
+			"Enabled": true
 		}
 	]
 }
