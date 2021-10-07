@@ -36,7 +36,7 @@ AFlyingCharacterPawn::AFlyingCharacterPawn()
 void AFlyingCharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
-
+	//planeMesh->OnComponentHit.AddDynamic()
 	TArray<AActor*> foundActors;
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), foundActors);
@@ -60,13 +60,21 @@ void AFlyingCharacterPawn::BeginPlay()
 		}
 	}
 
+	planeMesh->OnComponentHit.AddDynamic(this, &AFlyingCharacterPawn::OnCollision);
+
+	characterSpeedCached = characterSpeed;
+
+	FTimerHandle moveDelay;
+
+	GetWorldTimerManager().SetTimer(
+		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 3.0f, false);
+
 }
 
 // Called every frame
 void AFlyingCharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 
 	//[1] Set Rotation of Pawn
 	if (handComponentToFollow)
@@ -89,9 +97,11 @@ void AFlyingCharacterPawn::Tick(float DeltaTime)
 
 		FRotator newRot = UKismetMathLibrary::MakeRotationFromAxes(forward, right, up);
 		newRot.Roll = -newRot.Roll;
-	
+		
+		FQuat setRotation = FQuat::Slerp(GetActorRotation().Quaternion(), newRot.Quaternion(), 0.2f);
 
-		SetActorRotation(newRot, ETeleportType::TeleportPhysics);
+
+		SetActorRotation(setRotation, ETeleportType::TeleportPhysics);
 		//UE_LOG(LogTemp, Warning, TEXT("frotator %s"), *handComponentToFollow->GetComponentRotation().ToString() );
 	}
 	else
@@ -100,13 +110,28 @@ void AFlyingCharacterPawn::Tick(float DeltaTime)
 	}
 
 	//[1] Move player
-	SetActorLocation(
-		GetActorLocation() + GetActorForwardVector() * characterSpeed,
-		true, 
-		nullptr, 
-		ETeleportType::None);
+	if (bIsMovementEnabled)
+	{
+		externalVelocity += GetActorForwardVector() * characterSpeed * DeltaTime;
+		externalVelocity *= 0.9f;
 
+		FVector unitDirection; float length;
+		externalVelocity.ToDirectionAndLength(unitDirection, length);
 
+		//if (length > 50)
+		//{
+		//	externalVelocity = unitDirection * 50.0f;
+		//	UE_LOG(LogTemp, Warning, TEXT("Clamped Speed ") );
+		//}
+
+		UE_LOG(LogTemp, Warning, TEXT("externalVelocity %s"), *(externalVelocity.ToString()));
+
+		SetActorLocation(
+			GetActorLocation() + externalVelocity,
+			true,
+			nullptr,
+			ETeleportType::None);
+	}
 }
 
 // Called to bind functionality to input
@@ -120,6 +145,44 @@ void AFlyingCharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 void AFlyingCharacterPawn::FireProjectile()
 {
 	AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(projectileToSpawn, GetActorLocation() + GetActorForwardVector() * 50.0f, GetActorRotation());
+
+}
+
+void AFlyingCharacterPawn::applyBounce(FVector direction)
+{
+
+}
+
+void AFlyingCharacterPawn::reApplyCharacterSpeed()
+{
+	characterSpeed = characterSpeedCached;
+	bIsAbleToReactToCollision = true;
+}
+
+void AFlyingCharacterPawn::activateMovement()
+{
+	bIsMovementEnabled = true;
+}
+
+void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (bIsAbleToReactToCollision)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *(Hit.Normal.ToString()));
+		bIsAbleToReactToCollision = false;
+
+		externalVelocity = UKismetMathLibrary::GetReflectionVector( externalVelocity , Hit.Normal) + Hit.Normal * onCollisionBounceFactor;
+
+		//characterSpeed = 0.0f;
+
+		GetWorldTimerManager().SetTimer(
+			collisionTimerHandle, this, &AFlyingCharacterPawn::reApplyCharacterSpeed, invulnerabilityTimeSeconds, false);
+	}
+
+
+	// Deflect along the surface when we collide.
+	FRotator CurrentRotation = GetActorRotation();
+	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), Hit.Normal.ToOrientationQuat(), 0.01f));
 
 }
 

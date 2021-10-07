@@ -9,12 +9,34 @@
 class UManusComponent;
 class AProjectile;
 
+struct TickMovement
+{
+	float movementApplicationTimeSeconds =0.0f;
+	FVector moveAmount = FVector();
+
+	TickMovement() = default;
+
+	TickMovement(FVector pVec, float pMovementTimeSeconds) 
+		: movementApplicationTimeSeconds(pMovementTimeSeconds),moveAmount(pVec)
+	{
+
+	}
+};
+
 UCLASS()
 class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
 {
 	GENERATED_BODY()
 
 private:
+
+	UManusComponent* handComponentToFollow = nullptr;
+
+	TQueue<TickMovement> movementApplicationQueue;
+
+	FVector externalVelocity;
+
+	int currentTick = 0;
 
 	UPROPERTY(Category="Mesh", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true") )
 	class UStaticMeshComponent* planeMesh;
@@ -25,13 +47,35 @@ private:
 	UPROPERTY(Category = "Camera", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true") )
 	class USpringArmComponent* cameraSpring;
 
+	/** The Speed of the Player */
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float characterSpeed = 30.0f;
 
-	UManusComponent* handComponentToFollow = nullptr;
+	float characterSpeedCached;
 
-	
+	/** The amount of time where the player is invulnerable to collisions*/
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float invulnerabilityTimeSeconds = 0.5f;
+
+	/** How much the player bounces when it hits a wall */
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float onCollisionBounceFactor = 1.0f;
+
 	void FireProjectile();
+
+	void applyBounce(FVector direction);
+
+	void reApplyCharacterSpeed();
+
+	void activateMovement();
+
+	UFUNCTION()
+	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	FTimerHandle collisionTimerHandle;
+	bool bIsAbleToReactToCollision = true;
+
+	bool bIsMovementEnabled = false;
 
 public:
 
