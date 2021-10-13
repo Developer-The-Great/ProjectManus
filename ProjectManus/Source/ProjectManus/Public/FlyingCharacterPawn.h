@@ -8,6 +8,7 @@
 
 class UManusComponent;
 class AProjectile;
+class UHealthComponent;
 
 struct TickMovement
 {
@@ -47,6 +48,14 @@ private:
 	UPROPERTY(Category = "Camera", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true") )
 	class USpringArmComponent* cameraSpring;
 
+	UPROPERTY(Category = "Weapon", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* shooterSpawn;
+
+	UPROPERTY(Category = "Health", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UHealthComponent* healthComponent;
+
+	float timeBetweenShotSeconds = 1.0f;
+
 	/** The Speed of the Player */
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float characterSpeed = 30.0f;
@@ -63,6 +72,10 @@ private:
 
 	void FireProjectile();
 
+	void BeginFire();
+
+	void EndFire();
+
 	void applyBounce(FVector direction);
 
 	void reApplyCharacterSpeed();
@@ -75,6 +88,11 @@ private:
 	FTimerHandle collisionTimerHandle;
 	bool bIsAbleToReactToCollision = true;
 
+	FTimerHandle projectileFiringTimeHandle;
+	
+
+	int poseIndex = 0;
+
 	bool bIsMovementEnabled = false;
 
 public:
@@ -84,6 +102,11 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<AProjectile> projectileToSpawn;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float FiringRPM = 600.0f;
+
+	
 
 	// Sets default values for this pawn's properties
 	AFlyingCharacterPawn();
