@@ -287,3 +287,8 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 
 }
 
+int AFlyingCharacterPawn::GetCurrentAmno() const
+{
+	return shooterComponent->GetCurrentAmno();
+}
+
