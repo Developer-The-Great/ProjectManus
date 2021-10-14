@@ -20,17 +20,30 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	int currentAmno;
 
-	void BeginFire();
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	float reloadTime = 3.0f;
 
-	void FireProjectile();
-
-	void EndFire();
+	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	float currentReloadTime = 0.0f;
 
 public:	
 	// Sets default values for this component's properties
 	UShooterComponent();
 
-	int GetCurrentAmno() const { return currentAmno; }
+	int GetCurrentAmno() const  { return currentAmno; }
+
+	void BeginFire();
+	void FireProjectile();
+	void EndFire();
+
+	void ClearReloadTime() { currentReloadTime = 0.0f; }
+	void AddReloadTime(float dt){ currentReloadTime += dt; }
+	void Reload() 
+	{
+		currentAmno = defaultAmno; 
+		ClearReloadTime();
+	}
+	
 
 protected:
 	// Called when the game starts

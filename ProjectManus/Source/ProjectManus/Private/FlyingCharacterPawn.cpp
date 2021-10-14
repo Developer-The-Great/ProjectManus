@@ -87,6 +87,9 @@ void AFlyingCharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UE_LOG(LogTemp, Warning, TEXT("current amno is %d"), shooterComponent->GetCurrentAmno() );
+
+
 	//[1] Set Rotation of Pawn
 	if (handComponentToFollow)
 	{
@@ -135,6 +138,17 @@ void AFlyingCharacterPawn::Tick(float DeltaTime)
 			nullptr,
 			ETeleportType::None);
 	}
+
+	if (poseIndex == 2)
+	{
+		shooterComponent->AddReloadTime(DeltaTime);
+	}
+	else
+	{
+		shooterComponent->ClearReloadTime();
+	}
+
+
 }
 
 // Called to bind functionality to input
@@ -147,6 +161,14 @@ void AFlyingCharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 void AFlyingCharacterPawn::FireProjectile()
 {
+	//UE_LOG(LogTemp, Warning, TEXT("FireProjectile()"));
+	if (shooterComponent->GetCurrentAmno() <= 0)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("	No Amno"));
+		EndFire();
+		return;
+	}
+
 	FActorSpawnParameters spawnParams;
 	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
@@ -165,14 +187,21 @@ void AFlyingCharacterPawn::FireProjectile()
 		UE_LOG(LogTemp, Warning, TEXT("NO PROJECTILE SPAWNED"));
 	}
 
+	shooterComponent->FireProjectile();
+
+	
+
 }
 
 void AFlyingCharacterPawn::BeginFire()
 {
-	GetWorldTimerManager().SetTimer(projectileFiringTimeHandle, 
-		this, 
-		&AFlyingCharacterPawn::FireProjectile,
-		timeBetweenShotSeconds, true);
+	if (shooterComponent->GetCurrentAmno() > 0)
+	{
+		GetWorldTimerManager().SetTimer(projectileFiringTimeHandle,
+			this,
+			&AFlyingCharacterPawn::FireProjectile,
+			timeBetweenShotSeconds, true);
+	}
 }
 
 void AFlyingCharacterPawn::EndFire()
@@ -238,28 +267,21 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 
 	//UE_LOG(LogTemp, Warning, TEXT("found index is %d"), currentFoundIndex);
 
-	switch (currentFoundIndex)
+	if (poseIndex != 1 && currentFoundIndex == 1)
 	{
-	case 1:
-
-		if (poseIndex != 1)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("PLAYER -> BEGIN FIRE"));
-			BeginFire();
-		}
-
-		//FireProjectile();
-		break;
-	default:
-		break;
+		UE_LOG(LogTemp, Warning, TEXT("PLAYER -> BEGIN FIRE"));
+		BeginFire();
 	}
-
 
 	if (poseIndex == 1 && currentFoundIndex != 1)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PLAYER -> END FIRE"));
 		EndFire();
 	}
+
+
+
+
 
 	poseIndex = currentFoundIndex;
 
