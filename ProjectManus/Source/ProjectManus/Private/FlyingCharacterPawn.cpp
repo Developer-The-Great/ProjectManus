@@ -5,14 +5,17 @@
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "ShooterComponent.h"
+#include "HealthComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "../../../Plugins/Manus/Source/Manus/Public/ManusComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
+
 #include "Projectile.h"
 
-
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AFlyingCharacterPawn::AFlyingCharacterPawn()
@@ -30,6 +33,12 @@ AFlyingCharacterPawn::AFlyingCharacterPawn()
 	camera = CreateDefaultSubobject<UCameraComponent>(TEXT("camera"));
 	camera->SetupAttachment(cameraSpring);
 	camera->bUsePawnControlRotation = false;
+
+	shooterComponent = CreateDefaultSubobject<UShooterComponent>(TEXT("ShooterComponent"));
+	shooterComponent->SetupAttachment(RootComponent);
+
+	healthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	healthComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -68,6 +77,8 @@ void AFlyingCharacterPawn::BeginPlay()
 
 	GetWorldTimerManager().SetTimer(
 		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 3.0f, false);
+
+	timeBetweenShotSeconds = 60.0f / FiringRPM;
 
 }
 
@@ -118,14 +129,6 @@ void AFlyingCharacterPawn::Tick(float DeltaTime)
 		FVector unitDirection; float length;
 		externalVelocity.ToDirectionAndLength(unitDirection, length);
 
-		//if (length > 50)
-		//{
-		//	externalVelocity = unitDirection * 50.0f;
-		//	UE_LOG(LogTemp, Warning, TEXT("Clamped Speed ") );
-		//}
-
-		UE_LOG(LogTemp, Warning, TEXT("externalVelocity %s"), *(externalVelocity.ToString()));
-
 		SetActorLocation(
 			GetActorLocation() + externalVelocity,
 			true,
@@ -144,8 +147,37 @@ void AFlyingCharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 void AFlyingCharacterPawn::FireProjectile()
 {
-	AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(projectileToSpawn, GetActorLocation() + GetActorForwardVector() * 50.0f, GetActorRotation());
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+	
+	AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(projectileToSpawn,
+		shooterComponent->GetComponentLocation() + GetActorForwardVector() * 50.0f, GetActorForwardVector().Rotation(),
+		spawnParams);
+
+	if (projectile)
+	{
+		projectile->SetSpawnerActor(this);
+		projectile->BindOverlap();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO PROJECTILE SPAWNED"));
+	}
+
+}
+
+void AFlyingCharacterPawn::BeginFire()
+{
+	GetWorldTimerManager().SetTimer(projectileFiringTimeHandle, 
+		this, 
+		&AFlyingCharacterPawn::FireProjectile,
+		timeBetweenShotSeconds, true);
+}
+
+void AFlyingCharacterPawn::EndFire()
+{
+	GetWorldTimerManager().ClearTimer(projectileFiringTimeHandle);
 }
 
 void AFlyingCharacterPawn::applyBounce(FVector direction)
@@ -177,6 +209,8 @@ void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActo
 
 		GetWorldTimerManager().SetTimer(
 			collisionTimerHandle, this, &AFlyingCharacterPawn::reApplyCharacterSpeed, invulnerabilityTimeSeconds, false);
+
+		UGameplayStatics::ApplyDamage(this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass());
 	}
 
 
@@ -191,28 +225,43 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 	//[1] Identify the pose that the right hand with the largest value in the array
 
 	float largestPoseValue = -1.0;
-	int foundIndex = 0;
+	int currentFoundIndex = 0;
 
 	for (size_t i = 0; i < poseValue.Num(); i++)
 	{
 		if (poseValue[i] > largestPoseValue)
 		{
 			largestPoseValue = poseValue[i];
-			foundIndex = i;
+			currentFoundIndex = i;
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("found index is %d"), foundIndex);
+	//UE_LOG(LogTemp, Warning, TEXT("found index is %d"), currentFoundIndex);
 
-	switch (foundIndex)
+	switch (currentFoundIndex)
 	{
 	case 1:
-		FireProjectile();
+
+		if (poseIndex != 1)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PLAYER -> BEGIN FIRE"));
+			BeginFire();
+		}
+
+		//FireProjectile();
 		break;
 	default:
 		break;
 	}
 
+
+	if (poseIndex == 1 && currentFoundIndex != 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PLAYER -> END FIRE"));
+		EndFire();
+	}
+
+	poseIndex = currentFoundIndex;
 
 }
 
