@@ -9,6 +9,7 @@
 class UManusComponent;
 class AProjectile;
 class UHealthComponent;
+class UShooterComponent;
 
 struct TickMovement
 {
@@ -49,7 +50,7 @@ private:
 	class USpringArmComponent* cameraSpring;
 
 	UPROPERTY(Category = "Weapon", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	USceneComponent* shooterSpawn;
+	UShooterComponent* shooterComponent;
 
 	UPROPERTY(Category = "Health", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* healthComponent;

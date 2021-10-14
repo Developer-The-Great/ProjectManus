@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "ShooterComponent.h"
 #include "HealthComponent.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -33,8 +34,8 @@ AFlyingCharacterPawn::AFlyingCharacterPawn()
 	camera->SetupAttachment(cameraSpring);
 	camera->bUsePawnControlRotation = false;
 
-	shooterSpawn = CreateDefaultSubobject<USceneComponent>(TEXT("BulletSpawner"));
-	shooterSpawn->SetupAttachment(RootComponent);
+	shooterComponent = CreateDefaultSubobject<UShooterComponent>(TEXT("ShooterComponent"));
+	shooterComponent->SetupAttachment(RootComponent);
 
 	healthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	healthComponent->SetupAttachment(RootComponent);
@@ -151,7 +152,7 @@ void AFlyingCharacterPawn::FireProjectile()
 
 	
 	AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(projectileToSpawn,
-		shooterSpawn->GetComponentLocation() + GetActorForwardVector() * 50.0f, GetActorForwardVector().Rotation(),
+		shooterComponent->GetComponentLocation() + GetActorForwardVector() * 50.0f, GetActorForwardVector().Rotation(),
 		spawnParams);
 
 	if (projectile)
