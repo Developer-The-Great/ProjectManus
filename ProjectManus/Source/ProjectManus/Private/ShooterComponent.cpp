@@ -3,6 +3,19 @@
 
 #include "ShooterComponent.h"
 
+void UShooterComponent::BeginFire()
+{
+}
+
+void UShooterComponent::FireProjectile()
+{
+	currentAmno--;
+}
+
+void UShooterComponent::EndFire()
+{
+}
+
 // Sets default values for this component's properties
 UShooterComponent::UShooterComponent()
 {
@@ -18,9 +31,7 @@ UShooterComponent::UShooterComponent()
 void UShooterComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
+	Reload();
 }
 
 
@@ -29,6 +40,9 @@ void UShooterComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (currentReloadTime > reloadTime)
+	{
+		Reload();
+	}
 }
 
