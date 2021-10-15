@@ -76,7 +76,7 @@ void AFlyingCharacterPawn::BeginPlay()
 	FTimerHandle moveDelay;
 
 	GetWorldTimerManager().SetTimer(
-		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 3.0f, false);
+		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 13.0f, false);
 
 	timeBetweenShotSeconds = 60.0f / FiringRPM;
 
