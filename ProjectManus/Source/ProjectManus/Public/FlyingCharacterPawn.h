@@ -101,6 +101,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Gesture Detection")
 	void OnReceivePoseResults(TArray<float> poseValue);
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	int GetCurrentAmno() const;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<AProjectile> projectileToSpawn;
 
