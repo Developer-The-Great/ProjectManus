@@ -21,6 +21,10 @@
 		{
 			"Name": "OSC",
 			"Enabled": true
+		},
+		{
+			"Name": "MediaFrameworkUtilities",
+			"Enabled": true
 		}
 	]
 }
