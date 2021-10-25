@@ -7,23 +7,8 @@
 #include "FlyingCharacterPawn.generated.h"
 
 class UManusComponent;
-class AProjectile;
 class UHealthComponent;
 class UShooterComponent;
-
-struct TickMovement
-{
-	float movementApplicationTimeSeconds =0.0f;
-	FVector moveAmount = FVector();
-
-	TickMovement() = default;
-
-	TickMovement(FVector pVec, float pMovementTimeSeconds) 
-		: movementApplicationTimeSeconds(pMovementTimeSeconds),moveAmount(pVec)
-	{
-
-	}
-};
 
 UCLASS()
 class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
@@ -34,11 +19,11 @@ private:
 
 	UManusComponent* handComponentToFollow = nullptr;
 
-	TQueue<TickMovement> movementApplicationQueue;
-
 	FVector externalVelocity;
 
 	int currentTick = 0;
+
+	//------------------------------------- Default Components --------------------------------------------------// 
 
 	UPROPERTY(Category="Mesh", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true") )
 	class UStaticMeshComponent* planeMesh;
@@ -55,13 +40,11 @@ private:
 	UPROPERTY(Category = "Health", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* healthComponent;
 
-	float timeBetweenShotSeconds = 1.0f;
+	//------------------------------------- Movement Variables --------------------------------------------------// 
 
 	/** The Speed of the Player */
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float characterSpeed = 30.0f;
-
-	float characterSpeedCached;
 
 	/** The amount of time where the player is invulnerable to collisions*/
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -71,30 +54,37 @@ private:
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float onCollisionBounceFactor = 1.0f;
 
-	void FireProjectile();
+	float characterSpeedCached;
 
-	void BeginFire();
+	bool bIsMovementEnabled = false;
 
-	void EndFire();
-
-	void applyBounce(FVector direction);
-
-	void reApplyCharacterSpeed();
-
-	void activateMovement();
+	//------------------------------------- Collisions --------------------------------------------------// 
 
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	FTimerHandle collisionTimerHandle;
 	bool bIsAbleToReactToCollision = true;
 
-	FTimerHandle projectileFiringTimeHandle;
-	
+	FTimerHandle collisionTimerHandle;
+
+	//------------------------------------- Weapon Logic --------------------------------------------------// 
+
+	void FireProjectile();
+	void BeginFire();
+	void EndFire();
+
+	void UpdateReloadState(float deltaTime);
+
+	//------------------------------------- Movement Logic --------------------------------------------------// 
+
+	void reApplyCharacterSpeed();
+	void activateMovement();
+	void rotatePlayerBasedOnHand();
+	void moveOnPlayerForward( float DeltaTime );
 
 	int poseIndex = 0;
 
-	bool bIsMovementEnabled = false;
+	
 
 public:
 
@@ -103,14 +93,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	int GetCurrentAmno() const;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TSubclassOf<AProjectile> projectileToSpawn;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float FiringRPM = 600.0f;
-
-	
 
 	// Sets default values for this pawn's properties
 	AFlyingCharacterPawn();

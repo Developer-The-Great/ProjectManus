@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "ShooterComponent.generated.h"
 
+class AProjectile;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTMANUS_API UShooterComponent : public USceneComponent
@@ -13,6 +14,8 @@ class PROJECTMANUS_API UShooterComponent : public USceneComponent
 	GENERATED_BODY()
 
 private:
+
+	//------------------------------------- WEAPON VARIABLES --------------------------------------------------// 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	int defaultAmno;
@@ -26,11 +29,22 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	float currentReloadTime = 0.0f;
 
+	FTimerHandle projectileFiringTimeHandle;
+	float timeBetweenShotSeconds = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AProjectile> projectileToSpawn;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	float FiringRPM = 600.0f;
+
 public:	
 	// Sets default values for this component's properties
 	UShooterComponent();
 
-	int GetCurrentAmno() const  { return currentAmno; }
+	//------------------------------------- WEAPON LOGIC --------------------------------------------------// 
+
+	int GetCurrentAmno() const { return currentAmno; }
 
 	void BeginFire();
 	void FireProjectile();
@@ -44,7 +58,6 @@ public:
 		ClearReloadTime();
 	}
 	
-
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
