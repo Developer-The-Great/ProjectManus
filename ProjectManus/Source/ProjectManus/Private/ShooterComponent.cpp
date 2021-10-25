@@ -2,18 +2,53 @@
 
 
 #include "ShooterComponent.h"
+#include "Projectile.h"
 
 void UShooterComponent::BeginFire()
 {
+	if (currentAmno > 0)
+	{
+		GetOwner()->GetWorldTimerManager().SetTimer(projectileFiringTimeHandle,
+			this,
+			&UShooterComponent::FireProjectile,
+			timeBetweenShotSeconds, true);
+	}
 }
 
 void UShooterComponent::FireProjectile()
 {
+	if( currentAmno <= 0)
+	{
+		EndFire();
+		return;
+	}
+
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AActor* actor = GetOwner();
+	FVector actorForward = actor->GetActorForwardVector();
+
+	AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(projectileToSpawn,
+		GetComponentLocation() + actorForward * 50.0f, actorForward.Rotation(),
+		spawnParams);
+
+	if (projectile)
+	{
+		projectile->SetSpawnerActor(actor);
+		projectile->BindOverlap();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO PROJECTILE SPAWNED"));
+	}
+
 	currentAmno--;
 }
 
 void UShooterComponent::EndFire()
 {
+	GetOwner()->GetWorldTimerManager().ClearTimer(projectileFiringTimeHandle);
 }
 
 // Sets default values for this component's properties
@@ -32,6 +67,7 @@ void UShooterComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Reload();
+	timeBetweenShotSeconds = 60.0f / FiringRPM;
 }
 
 
