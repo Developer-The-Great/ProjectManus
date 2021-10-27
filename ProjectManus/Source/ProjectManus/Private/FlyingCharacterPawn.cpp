@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "ShooterComponent.h"
 #include "HealthComponent.h"
+#include "ShieldComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "../../../Plugins/Manus/Source/Manus/Public/ManusComponent.h"
@@ -36,6 +37,9 @@ AFlyingCharacterPawn::AFlyingCharacterPawn()
 
 	healthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	healthComponent->SetupAttachment(RootComponent);
+
+	shieldComponent = CreateDefaultSubobject<UShieldComponent>(TEXT("ShieldComponent"));
+	shieldComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -58,11 +62,15 @@ void AFlyingCharacterPawn::BeginPlay()
 
 			if (manusComp->MotionCaptureType == EManusMotionCaptureType::LeftHand)
 			{
-				
 				UE_LOG(LogTemp, Warning, TEXT("	Left Hand Found"));
 				handComponentToFollow = manusComp;
-
 			}
+			else if (manusComp->MotionCaptureType == EManusMotionCaptureType::RightHand)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("	Right Hand Found"));
+				handForPoses = manusComp;
+			}
+			
 		}
 	}
 
@@ -150,7 +158,7 @@ void AFlyingCharacterPawn::rotatePlayerBasedOnHand()
 	FVector hand = handComponentToFollow->GetSocketLocation("hand_r");
 	FVector index = handComponentToFollow->GetSocketLocation("index_01_r");
 	FVector middle = handComponentToFollow->GetSocketLocation("middle_01_r");
-
+	
 	FVector forward = middle - hand;
 	forward.Normalize();
 
@@ -166,7 +174,7 @@ void AFlyingCharacterPawn::rotatePlayerBasedOnHand()
 	FRotator newRot = UKismetMathLibrary::MakeRotationFromAxes(forward, right, up);
 	newRot.Roll = -newRot.Roll;
 
-	FQuat setRotation = FQuat::Slerp(GetActorRotation().Quaternion(), newRot.Quaternion(), 0.2f);
+	FQuat setRotation = FQuat::Slerp( GetActorRotation().Quaternion(), newRot.Quaternion(), 0.2f );
 
 	SetActorRotation(setRotation, ETeleportType::TeleportPhysics);
 }
@@ -186,6 +194,22 @@ void AFlyingCharacterPawn::moveOnPlayerForward( float DeltaTime )
 		ETeleportType::None);
 }
 
+bool AFlyingCharacterPawn::checkRightHandPointingUp()
+{
+	FVector hand = handForPoses->GetSocketLocation("hand_r");
+	FVector middle = handForPoses->GetSocketLocation("middle_01_r");
+
+	FVector forward = middle - hand;
+	forward.Normalize();
+
+	float dotResult = UKismetMathLibrary::Dot_VectorVector( forward, FVector::UpVector );
+	float angleFromUp = UKismetMathLibrary::RadiansToDegrees( UKismetMathLibrary::Acos(dotResult) );
+
+	UE_LOG(LogTemp, Warning, TEXT("angle %f"), angleFromUp);
+
+	return angleFromUp < shieldActivationAngleDegrees;
+}
+
 void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (bIsAbleToReactToCollision)
@@ -200,7 +224,11 @@ void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActo
 		GetWorldTimerManager().SetTimer(
 			collisionTimerHandle, this, &AFlyingCharacterPawn::reApplyCharacterSpeed, invulnerabilityTimeSeconds, false);
 
-		UGameplayStatics::ApplyDamage(this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass());
+		if ( ! shieldComponent->GetShieldActiveState())
+		{
+			UGameplayStatics::ApplyDamage(this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass());
+		}
+	
 	}
 
 
@@ -237,6 +265,21 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 		UE_LOG(LogTemp, Warning, TEXT("PLAYER -> END FIRE"));
 		EndFire();
 	}
+
+	//if pose index equals shield and fingers are pointing up and shield activator is up 
+
+	bool isRightHandPointingUp = false;
+
+	if ( poseIndex == 3 && checkRightHandPointingUp() )
+	{
+		bool activated = shieldComponent->TryActivateShield();
+		if (activated) { UE_LOG(LogTemp, Warning, TEXT("PLAYER -> SHIELD %d"), activated) };
+		
+	}
+
+		//apply shield
+		//set timer for shield off
+		//set timer for shield activator
 
 	poseIndex = currentFoundIndex;
 
