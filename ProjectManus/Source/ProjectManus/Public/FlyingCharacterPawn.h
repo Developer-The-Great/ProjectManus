@@ -9,6 +9,7 @@
 class UManusComponent;
 class UHealthComponent;
 class UShooterComponent;
+class UShieldComponent;
 
 UCLASS()
 class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
@@ -18,6 +19,7 @@ class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
 private:
 
 	UManusComponent* handComponentToFollow = nullptr;
+	UManusComponent* handForPoses = nullptr;
 
 	FVector externalVelocity;
 
@@ -39,6 +41,9 @@ private:
 
 	UPROPERTY(Category = "Health", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* healthComponent;
+
+	UPROPERTY(Category = "Shield", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UShieldComponent* shieldComponent;
 
 	//------------------------------------- Movement Variables --------------------------------------------------// 
 
@@ -84,7 +89,13 @@ private:
 
 	int poseIndex = 0;
 
-	
+	//------------------------------------- Shield Activation Logic --------------------------------------------------// 
+
+	bool checkRightHandPointingUp();
+
+	UPROPERTY(Category = "Shield Activation", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float shieldActivationAngleDegrees = 30.0f;
+
 
 public:
 
