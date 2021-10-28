@@ -13,11 +13,8 @@ UCLASS()
 class PROJECTMANUS_API UShieldComponent : public UStaticMeshComponent
 {
 	GENERATED_BODY()
-
+		
 private:
-
-	UPROPERTY(Category = "Shield", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float shieldActiveTime = 3.0f;
 
 	UPROPERTY(Category = "Shield", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float shieldActivatorActiveTime = 8.0f;
@@ -28,9 +25,22 @@ private:
 	UPROPERTY(Category = "Shield", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool canShieldBeActivated;
 
-	FTimerHandle shieldActivatorTimeHandle;
-	FTimerHandle shieldActiveTimeHandle;
+	UPROPERTY(Category = "Shield", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float shieldHealthCurrent;
 
+	UPROPERTY(Category = "Shield", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float shieldHealthMax = 4.0f;
+
+	FTimerHandle shieldActivatorTimeHandle;
+
+
+	void SetShieldActive( bool newShieldState );
+
+	void ReActivateShieldActivator() { canShieldBeActivated = true; }
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
 
 public:
 
@@ -40,7 +50,5 @@ public:
 
 	bool GetShieldActiveState() const { return isShieldActive; }
 
-	void DeactivateShield();
-
-	void ReActivateShieldActivator() { canShieldBeActivated = true; }
+	void DamageShield(float damage);
 };

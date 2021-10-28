@@ -3,38 +3,26 @@
 
 #include "ShieldComponent.h"
 
-
+void UShieldComponent::BeginPlay()
+{
+	shieldHealthCurrent = shieldHealthMax;
+}
 
 UShieldComponent::UShieldComponent()
 {
 	canShieldBeActivated = true;
-	DeactivateShield();
+	SetShieldActive(false);
 }
 
 bool UShieldComponent::TryActivateShield()
 {
 	if (canShieldBeActivated)
 	{
+		shieldHealthCurrent = shieldHealthMax;
 		UE_LOG(LogTemp, Warning, TEXT("Activated Shield!"));
 
-		isShieldActive = true;
+		SetShieldActive(true);
 		canShieldBeActivated = false;
-
-		SetVisibility(true);
-
-		GetOwner()->GetWorldTimerManager().SetTimer
-		(
-			shieldActiveTimeHandle,
-			this,
-			&UShieldComponent::DeactivateShield, 
-			shieldActiveTime);
-
-		GetOwner()->GetWorldTimerManager().SetTimer
-		(
-			shieldActivatorTimeHandle,
-			this,
-			&UShieldComponent::ReActivateShieldActivator,
-			shieldActivatorActiveTime);
 
 		return true;
 
@@ -43,8 +31,27 @@ bool UShieldComponent::TryActivateShield()
 	return false;
 }
 
-void UShieldComponent::DeactivateShield()
+void UShieldComponent::SetShieldActive( bool newShieldState )
 {
-	isShieldActive = false;
-	SetVisibility(false);
+	isShieldActive = newShieldState;
+	SetVisibility(newShieldState);
+}
+
+void UShieldComponent::DamageShield(float damage)
+{
+	shieldHealthCurrent -= damage;
+
+	if (shieldHealthCurrent <= 0.0f)
+	{
+		SetShieldActive(false);
+
+		GetOwner()->GetWorldTimerManager().SetTimer
+		(
+			shieldActivatorTimeHandle,
+			this,
+			&UShieldComponent::ReActivateShieldActivator,
+			shieldActivatorActiveTime);
+
+	}
+
 }

@@ -8,12 +8,16 @@
 #include "ShooterComponent.h"
 #include "HealthComponent.h"
 #include "ShieldComponent.h"
+#include "FlyingEnemyActor.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "../../../Plugins/Manus/Source/Manus/Public/ManusComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 #include "DrawDebugHelpers.h"
+
+constexpr float shieldDamageOnTerrain = 2.0f;
+constexpr float shieldDamageOnEnemy = 1.0f;
 
 // Sets default values
 AFlyingCharacterPawn::AFlyingCharacterPawn()
@@ -226,7 +230,12 @@ void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActo
 
 		if ( ! shieldComponent->GetShieldActiveState())
 		{
-			UGameplayStatics::ApplyDamage(this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass());
+			UGameplayStatics::ApplyDamage( this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass() );
+		}
+		else
+		{
+			float damageDone = dynamic_cast<AFlyingEnemyActor*>(OtherActor) ? shieldDamageOnEnemy : shieldDamageOnTerrain;
+			shieldComponent->DamageShield(damageDone);
 		}
 	
 	}
