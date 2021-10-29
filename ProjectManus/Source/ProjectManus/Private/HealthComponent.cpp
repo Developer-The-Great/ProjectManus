@@ -37,12 +37,15 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UHealthComponent::OnHealthChanged(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnHealthChanged"));
-
 	currentHealth -= Damage;
+
+	OnHealthChangedEvent.Broadcast(currentHealth, Damage, DamageCauser);
+	UE_LOG(LogTemp, Warning, TEXT("OnHealthChanged caused by %s"), *(DamageCauser->GetName()));
 
 	if (currentHealth <= 0.0f)
 	{
+		
+
 		GetOwner()->Destroy();
 	}
 }

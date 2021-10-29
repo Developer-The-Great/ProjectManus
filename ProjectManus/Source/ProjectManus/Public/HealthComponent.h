@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "HealthComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangedSignature, float, newHealth, float, Damage, AActor*, DamageCauser);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTMANUS_API UHealthComponent : public USceneComponent
@@ -25,6 +26,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnHealthChangedSignature OnHealthChangedEvent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 		float defaultHealth;

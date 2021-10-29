@@ -10,6 +10,7 @@ class UManusComponent;
 class UHealthComponent;
 class UShooterComponent;
 class UShieldComponent;
+class UScoreTrackerComponent;
 
 UCLASS()
 class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
@@ -45,6 +46,8 @@ private:
 	UPROPERTY(Category = "Shield", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UShieldComponent* shieldComponent;
 
+	UPROPERTY(Category = "Scoring System", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UScoreTrackerComponent* scoreTrackerComponent;
 	//------------------------------------- Movement Variables --------------------------------------------------// 
 
 	/** The Speed of the Player */
@@ -104,6 +107,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	int GetCurrentAmno() const;
+
+	UFUNCTION(BlueprintCallable, Category = "ScoreTracking")
+	float GetCurrentScore() const;
+
+	void AddScore(float addedPoints);
 
 	// Sets default values for this pawn's properties
 	AFlyingCharacterPawn();
