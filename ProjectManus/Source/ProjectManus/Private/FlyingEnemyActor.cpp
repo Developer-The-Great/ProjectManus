@@ -4,6 +4,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "FlyingCharacterPawn.h"
 #include "Projectile.h"
+#include "Components/BoxComponent.h"
+#include "DrawDebugHelpers.h"
+
+#include "Kismet/KismetMathLibrary.h"
+#include "Engine/World.h"
 
 // Sets default values
 AFlyingEnemyActor::AFlyingEnemyActor()
@@ -19,8 +24,11 @@ AFlyingEnemyActor::AFlyingEnemyActor()
 	healthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("healthComponent"));
 	healthComponent->SetupAttachment(planeMesh);
 
-	
-}
+	//mainBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("mainBoxComponent"));
+	//mainBoxComponent->SetupAttachment(planeMesh);
+	//mainBoxComponent->SetRelativeLocation(FVector(0, 0, 500), false, nullptr, ETeleportType::TeleportPhysics);
+	//mainBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnPathBlocked);
+}	
 
 void AFlyingEnemyActor::OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -30,6 +38,8 @@ void AFlyingEnemyActor::OnCollision(UPrimitiveComponent* HitComponent, AActor* O
 
 void AFlyingEnemyActor::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("PROJECTILE damage "));
+
 	if ( dynamic_cast<AProjectile*>(OtherActor) )
 	{
 		
@@ -38,6 +48,12 @@ void AFlyingEnemyActor::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
 		UE_LOG( LogTemp, Warning, TEXT("ENEMY HIT PROJECTILE damage %f"), damageApplied );
 		//UGameplayStatics::ApplyPointDamage(this,)
 	}
+}
+
+void AFlyingEnemyActor::OnPathBlocked(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor
+	, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("PATH BLOCKED DIRECTION SHIFT REQUIRED"));
 }
 
 void AFlyingEnemyActor::HealthChangedCallback( float newHealth, float Damage, AActor* DamageCauser)
@@ -83,13 +99,121 @@ void AFlyingEnemyActor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
 	}
 
+	//TArray<USceneComponent*> allComponents;
+	//mainBoxComponent->GetChildrenComponents(false, allComponents);
+
+	//for (USceneComponent* sceneComp : allComponents)
+	//{
+	//	UBoxComponent* boxComponent = dynamic_cast<UBoxComponent*>(sceneComp);
+
+	//	if (boxComponent)
+	//	{
+	//		movementOptionBoxes.Push(boxComponent);
+	//	}
+	//}
+
+	//UE_LOG(LogTemp, Warning, TEXT("BoxComponentFound %d "), movementOptionBoxes.Num() );
+
+	//defaultLine = mainBoxComponent->GetRelativeLocation();
+
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + defaultLine, FColor(255, 0, 0), true);
+
+	//UE_LOG(LogTemp, Warning, TEXT("defaultLine %s "), *(defaultLine.ToString()));
+
+	//FVector dir; float length;
+	//defaultLine.ToDirectionAndLength(dir, length);
+
+	//mLineLength = length;
 }
 
 // Called every frame
 void AFlyingEnemyActor::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
 
-	SetActorLocation(GetActorLocation() + GetActorUpVector() * speed * DeltaTime,true,nullptr);
+	SetActorLocation(GetActorLocation() + GetActorUpVector() * speed * DeltaTime, true, nullptr);
+
+	//FHitResult result;
+	//FCollisionQueryParams params;
+	//params.AddIgnoredActor(this);
+
+	//FVector dir; float length;
+	//defaultLine.ToDirectionAndLength(dir, length);
+
+	//FVector transformLineVec = GetActorTransform().TransformVector( GetActorForwardVector() * mLineLength);
+
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + transformLineVec, FColor(255, 0, 0), false);
+
+	//if (GetWorld()->LineTraceSingleByChannel(result,
+	//	GetActorLocation(), GetActorLocation() + transformLineVec, ECollisionChannel::ECC_Visibility, params) )
+	//{
+
+	//	mainBoxComponent->SetWorldLocation(GetActorLocation() + GetActorUpVector() * result.Distance, false, nullptr, ETeleportType::TeleportPhysics);
+	//	
+	//	UE_LOG(LogTemp, Warning, TEXT("VISIBILITY BOXES SHORTENED dir: %s %f"), *(dir.ToString() ) ,result.Distance);
+	//}
+	//else
+	//{
+	//	mainBoxComponent->SetWorldLocation( GetActorLocation() + transformLineVec,false,nullptr,ETeleportType::TeleportPhysics);
+	//}
+
+	//Super::Tick(DeltaTime);
+	//DrawDebugPoint(GetWorld(), mainBoxComponent->GetComponentTransform().GetLocation()  , 5, FColor(52, 220, 239), false);
+	//DrawDebugBox(GetWorld(), mainBoxComponent->GetComponentTransform().GetLocation(), mainBoxComponent->GetScaledBoxExtent(), FColor(52, 220, 239), false);
+	//
+
+	////if mainBoxComponent has any overlapping actors
+	//TArray<AActor*> overlappingActors;
+	//mainBoxComponent->GetOverlappingActors(overlappingActors);
+
+	//for (UBoxComponent* boxComponent : movementOptionBoxes)
+	//{
+	//	TArray<AActor*> boxOverlappingActors;
+	//	boxComponent->GetOverlappingActors(boxOverlappingActors);
+
+	//	if (boxOverlappingActors.Num() == 0)
+	//	{
+	//		DrawDebugBox(GetWorld(), boxComponent->GetComponentTransform().GetLocation(), boxComponent->GetScaledBoxExtent(), FColor(0, 255, 0), false);
+	//		
+	//		UE_LOG(LogTemp, Warning, TEXT("Found debug box"));
+	//	}
+	//	else
+	//	{
+	//		DrawDebugBox(GetWorld(), boxComponent->GetComponentTransform().GetLocation(), boxComponent->GetScaledBoxExtent(), FColor(255, 0, 0), false);
+	//		UE_LOG(LogTemp, Warning, TEXT("this box is overlapping"));
+	//	}
+
+	//}
+
+	//if (overlappingActors.Num() == 0) { return; }
+
+	//UE_LOG(LogTemp,Warning,TEXT("FOUND OVERLAPPING ACTORS DIVERT COURSE NOW"));
+
+	//
+
+	//
+
+	//for (UBoxComponent* boxComponent : movementOptionBoxes)
+	//{
+	//	TArray<AActor*> boxOverlappingActors;
+	//	boxComponent->GetOverlappingActors(boxOverlappingActors);
+
+	//	if (boxOverlappingActors.Num() == 0)
+	//	{
+	//		FRotator CurrentRotation = GetActorRotation();
+
+	//		FVector forward = (boxComponent->GetComponentTransform().GetLocation() - GetActorLocation());
+	//		forward.Normalize();
+
+	//		FVector right = UKismetMathLibrary::Cross_VectorVector(forward, GetActorUpVector());
+	//		FVector up = UKismetMathLibrary::Cross_VectorVector(right, forward);
+
+	//		FRotator newRot = UKismetMathLibrary::MakeRotationFromAxes(forward, right, up);
+
+	//		SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), newRot.Quaternion(), 0.01f));
+	//		break;
+	//	}
+	//}
+
+
 }
 

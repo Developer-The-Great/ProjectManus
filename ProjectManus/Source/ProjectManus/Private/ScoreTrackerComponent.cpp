@@ -34,8 +34,6 @@ void UScoreTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	timeSinceInitializationSeconds += DeltaTime;
-
-	UE_LOG(LogTemp, Warning, TEXT("Current Score %f"), currentScore);
 	// ...
 }
 
