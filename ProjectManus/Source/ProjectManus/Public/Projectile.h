@@ -17,7 +17,8 @@ private:
 	class UStaticMeshComponent* planeMesh = nullptr;
 
 	AActor* spawnerActor = nullptr;
-	
+	bool bHasAppliedDamage = false;
+
 public:	
 	// Sets default values for this actor's properties
 	AProjectile();
@@ -31,6 +32,12 @@ public:
 	float projectileSpeed = 400.0f;
 
 	void SetSpawnerActor(AActor* newSpawnerActor) { spawnerActor = newSpawnerActor; };
+
+	AActor* GetSpawnerActor() const { return spawnerActor; }
+
+	void SetDamageApplicationTrue() { bHasAppliedDamage = true; }
+	bool GetDamageApplicationState() { return bHasAppliedDamage; }
+
 	void BindOverlap();
 	
 protected:

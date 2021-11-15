@@ -9,6 +9,7 @@
 #include "HealthComponent.h"
 #include "ShieldComponent.h"
 #include "FlyingEnemyActor.h"
+#include "ScoreTrackerComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "../../../Plugins/Manus/Source/Manus/Public/ManusComponent.h"
@@ -44,6 +45,8 @@ AFlyingCharacterPawn::AFlyingCharacterPawn()
 
 	shieldComponent = CreateDefaultSubobject<UShieldComponent>(TEXT("ShieldComponent"));
 	shieldComponent->SetupAttachment(RootComponent);
+
+	scoreTrackerComponent = CreateDefaultSubobject<UScoreTrackerComponent>(TEXT("ScoreComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -209,8 +212,6 @@ bool AFlyingCharacterPawn::checkRightHandPointingUp()
 	float dotResult = UKismetMathLibrary::Dot_VectorVector( forward, FVector::UpVector );
 	float angleFromUp = UKismetMathLibrary::RadiansToDegrees( UKismetMathLibrary::Acos(dotResult) );
 
-	UE_LOG(LogTemp, Warning, TEXT("angle %f"), angleFromUp);
-
 	return angleFromUp < shieldActivationAngleDegrees;
 }
 
@@ -218,7 +219,6 @@ void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActo
 {
 	if (bIsAbleToReactToCollision)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *(Hit.Normal.ToString()));
 		bIsAbleToReactToCollision = false;
 
 		externalVelocity = UKismetMathLibrary::GetReflectionVector( externalVelocity , Hit.Normal) + Hit.Normal * onCollisionBounceFactor;
@@ -297,5 +297,15 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 int AFlyingCharacterPawn::GetCurrentAmno() const
 {
 	return shooterComponent->GetCurrentAmno();
+}
+
+float AFlyingCharacterPawn::GetCurrentScore() const
+{
+	return scoreTrackerComponent->GetCurrentScore();
+}
+
+void AFlyingCharacterPawn::AddScore(float addedPoints)
+{
+	scoreTrackerComponent->AddScore(addedPoints);
 }
 
