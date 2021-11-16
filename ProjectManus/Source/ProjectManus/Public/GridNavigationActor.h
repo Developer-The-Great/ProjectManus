@@ -24,6 +24,8 @@ public:
 	bool GetIndexAt(FIntVector vectorIndex) const;
 
 	void SetIndexAt(FIntVector vectorIndex, bool newIndexState);
+
+	int32 Size() const { return data.Num(); }
 };
 
 
@@ -46,6 +48,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void SetNodeBlockedState(const FIntVector& gridPosition, bool newNodeState);
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -65,5 +69,8 @@ public:
 
 private:
 
+	void InitializeGridUsingEnviroment();
+
 	Grid3DArray navigationGrid;
+	bool isGridInit = false;
 };

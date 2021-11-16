@@ -99,6 +99,8 @@ void AFlyingEnemyActor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
 	}
 
+
+
 	//TArray<USceneComponent*> allComponents;
 	//mainBoxComponent->GetChildrenComponents(false, allComponents);
 
