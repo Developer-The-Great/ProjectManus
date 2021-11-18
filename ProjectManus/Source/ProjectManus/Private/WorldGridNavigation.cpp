@@ -84,3 +84,11 @@ FPathFindingResult AWorldGridNavigation::FindGridPath(const FNavAgentProperties&
 
 	return pathfindingResult;
 }
+
+bool AWorldGridNavigation::ProjectPoint(const FVector& Point, FNavLocation& OutLocation, const FVector& Extent, FSharedConstNavQueryFilter Filter, const UObject* Querier) const
+{
+	FIntVector gridPosition = graph.GetNavigationActor()->GetGridPositionFromWorldPosition(Point);
+	OutLocation = FNavLocation(Point);
+
+	return graph.GetNavigationActor()->IsGridCellValid(gridPosition);
+}

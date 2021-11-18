@@ -19,13 +19,12 @@ float AStarGridPathfindingQueryFilter::GetHeuristicScale() const
 
 float AStarGridPathfindingQueryFilter::GetHeuristicCost(const FIntVector& StartNode, const FIntVector& EndNode) const
 {
-	return FMath::Abs(StartNode.X - EndNode.X) + FMath::Abs(StartNode.Y - EndNode.Y) 
-		+ FMath::Abs(StartNode.Z - EndNode.Z);
+	return FMath::Abs(StartNode.X - EndNode.X) + FMath::Abs(StartNode.Y - EndNode.Y) + FMath::Abs(StartNode.Z - EndNode.Z);
 }
 
 float AStarGridPathfindingQueryFilter::GetTraversalCost(const FIntVector& StartNode, const FIntVector& EndNode) const
 {
-	return 1.0f;
+	return FVector(StartNode.X - EndNode.X, StartNode.Y - EndNode.Y, StartNode.Z - EndNode.Z).Size();
 }
 
 bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA, const FIntVector NodeB) const

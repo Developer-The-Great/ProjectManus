@@ -9,13 +9,14 @@
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/World.h"
+#include "GameFramework/FloatingPawnMovement.h"
 
 // Sets default values
 AFlyingEnemyActor::AFlyingEnemyActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	planeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("planeMesh"));
 	RootComponent = planeMesh;
 
@@ -24,6 +25,8 @@ AFlyingEnemyActor::AFlyingEnemyActor()
 	healthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("healthComponent"));
 	healthComponent->SetupAttachment(planeMesh);
 
+	movementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("movementComponent"));
+	
 	//mainBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("mainBoxComponent"));
 	//mainBoxComponent->SetupAttachment(planeMesh);
 	//mainBoxComponent->SetRelativeLocation(FVector(0, 0, 500), false, nullptr, ETeleportType::TeleportPhysics);
@@ -32,8 +35,12 @@ AFlyingEnemyActor::AFlyingEnemyActor()
 
 void AFlyingEnemyActor::OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ENEMY HIT WALL"));
-	Destroy();
+	//UE_LOG(LogTemp, Warning, TEXT("ENEMY HIT WALL"));
+	if (OtherActor == player)
+	{
+		Destroy();
+	}
+	
 }
 
 void AFlyingEnemyActor::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -99,7 +106,7 @@ void AFlyingEnemyActor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
 	}
 
-
+	
 
 	//TArray<USceneComponent*> allComponents;
 	//mainBoxComponent->GetChildrenComponents(false, allComponents);

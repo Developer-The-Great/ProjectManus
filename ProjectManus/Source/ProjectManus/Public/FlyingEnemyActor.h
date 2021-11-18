@@ -7,11 +7,13 @@
 #include "HealthComponent.h"
 #include "FlyingEnemyActor.generated.h"
 
+
 class AFlyingCharacterPawn;
 class UBoxComponent;
+class UFloatingPawnMovement;
 
 UCLASS()
-class PROJECTMANUS_API AFlyingEnemyActor : public AActor
+class PROJECTMANUS_API AFlyingEnemyActor : public APawn
 {
 	GENERATED_BODY()
 
@@ -22,6 +24,8 @@ private:
 
 	FVector defaultLine;
 	float mLineLength;
+
+	int currentWaypointIndex = 0;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -33,10 +37,12 @@ public:
 	UPROPERTY(Category = "Health", VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* healthComponent = nullptr;
 
-	UPROPERTY(Category = "CollisionAvoidance", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* mainBoxComponent;
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+	UFloatingPawnMovement* movementComponent = nullptr;
 
-	
+	int GetCurrentWaypointIndex() const { return currentWaypointIndex; }
+
+	void SetWaypointIndex(int newIndex) { currentWaypointIndex = newIndex; }
 
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float speed = 30.0f;
