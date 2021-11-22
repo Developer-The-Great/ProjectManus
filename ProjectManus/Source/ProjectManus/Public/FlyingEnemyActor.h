@@ -75,6 +75,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void UpdateWaypoint();
 
+	void DirectSetWaypointIndex(int index) { currentWaypointIndex = index; }
+
 
 protected:
 	// Called when the game starts or when spawned
