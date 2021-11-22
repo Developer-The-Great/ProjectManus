@@ -14,17 +14,30 @@ AWaypointOrganizer::AWaypointOrganizer()
 
 }
 
-FVector AWaypointOrganizer::GetNextWaypoint(AFlyingEnemyActor* enemyActor) const
+FVector AWaypointOrganizer::GetNextWaypoint(int waypointIndex) const
 {
-	return waypointArray[enemyActor->GetCurrentWaypointIndex()]->GetActorLocation();
+	if (waypointArray.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO WAYPOINTS IN ORGANIZER!"));
+		return FVector();
+
+	}
+
+	return waypointArray[waypointIndex]->GetActorLocation();
 }
 
-void AWaypointOrganizer::UpdateWaypoint(AFlyingEnemyActor* enemyActor)
+void AWaypointOrganizer::UpdateWaypoint(int& waypointIndex)
 {
-	int currentIndex = enemyActor->GetCurrentWaypointIndex();
-	currentIndex = FMath::Clamp(currentIndex, 0, waypointArray.Num() - 1);
+	if (waypointArray.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO WAYPOINTS IN ORGANIZER!"));
+		waypointIndex = 0;
+		return;
+	}
 
-	enemyActor->SetWaypointIndex(currentIndex);
+	waypointIndex++;
+	waypointIndex = FMath::Clamp(waypointIndex, 0, waypointArray.Num() - 1);
+
 }
 
 // Called when the game starts or when spawned
@@ -48,8 +61,10 @@ void AWaypointOrganizer::BeginPlay()
 
 	waypointArray.Sort([](const AWaypointActor& LHS, const AWaypointActor& RHS) 
 	{ 
-		return LHS.GetWaypointIndex() > RHS.GetWaypointIndex();
+		return LHS.GetWaypointIndex() < RHS.GetWaypointIndex();
 	});
+
+	UE_LOG(LogTemp, Warning, TEXT("number of waypoints found %d"), waypointArray.Num());
 }
 
 // Called every frame

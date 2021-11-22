@@ -36,10 +36,10 @@ class PROJECTMANUS_API AGridNavigationActor : public AActor
 	
 public:	
 
-	UPROPERTY(Category = "Navigation Parameters", EditDefaultsOnly)
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	FIntVector navigationGridBlockDimensions;
 
-	UPROPERTY(Category = "Navigation Parameters", EditDefaultsOnly)
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	FVector blockDimensions;
 
 	// Sets default values for this actor's properties

@@ -10,6 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/World.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "WaypointOrganizer.h"
 
 // Sets default values
 AFlyingEnemyActor::AFlyingEnemyActor()
@@ -90,6 +91,24 @@ void AFlyingEnemyActor::HealthChangedCallback( float newHealth, float Damage, AA
 
 }
 
+FVector AFlyingEnemyActor::GetNextWaypoint() const
+{
+	if (waypointOrganizer)
+	{
+		return waypointOrganizer->GetNextWaypoint(currentWaypointIndex);
+	}
+
+	return FVector();
+}
+
+void AFlyingEnemyActor::UpdateWaypoint()
+{
+	if (waypointOrganizer)
+	{
+		waypointOrganizer->UpdateWaypoint(currentWaypointIndex);
+	}
+}
+
 // Called when the game starts or when spawned
 void AFlyingEnemyActor::BeginPlay()
 {
@@ -106,33 +125,18 @@ void AFlyingEnemyActor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
 	}
 
+	AActor* foundWaypoint = UGameplayStatics::GetActorOfClass(GetWorld(), AWaypointOrganizer::StaticClass());
+
+	if(!foundWaypoint) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO WAYPOINT FOUND "));
+		return;
+	}
+
+	waypointOrganizer = dynamic_cast<AWaypointOrganizer*>(foundWaypoint);
+
 	
 
-	//TArray<USceneComponent*> allComponents;
-	//mainBoxComponent->GetChildrenComponents(false, allComponents);
-
-	//for (USceneComponent* sceneComp : allComponents)
-	//{
-	//	UBoxComponent* boxComponent = dynamic_cast<UBoxComponent*>(sceneComp);
-
-	//	if (boxComponent)
-	//	{
-	//		movementOptionBoxes.Push(boxComponent);
-	//	}
-	//}
-
-	//UE_LOG(LogTemp, Warning, TEXT("BoxComponentFound %d "), movementOptionBoxes.Num() );
-
-	//defaultLine = mainBoxComponent->GetRelativeLocation();
-
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + defaultLine, FColor(255, 0, 0), true);
-
-	//UE_LOG(LogTemp, Warning, TEXT("defaultLine %s "), *(defaultLine.ToString()));
-
-	//FVector dir; float length;
-	//defaultLine.ToDirectionAndLength(dir, length);
-
-	//mLineLength = length;
 }
 
 // Called every frame

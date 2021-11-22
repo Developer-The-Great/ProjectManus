@@ -74,8 +74,6 @@ FPathFindingResult AWorldGridNavigation::FindGridPath(const FNavAgentProperties&
 				NavPath->GetPathPoints().Add(FNavPathPoint(navigationGridActor->GetWorldPositionFromGridPosition(gridPoint)));
 			}
 
-			NavPath->GetPathPoints().Add( FNavPathPoint( Query.EndLocation ));
-
 			NavPath->MarkReady();
 			pathfindingResult.Result = ENavigationQueryResult::Success;
 		}

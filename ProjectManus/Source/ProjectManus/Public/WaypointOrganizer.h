@@ -20,12 +20,10 @@ private:
 public:	
 	// Sets default values for this actor's properties
 	AWaypointOrganizer();
-	
-	UFUNCTION(BlueprintCallable, Category = "Navigation")
-	FVector GetNextWaypoint(AFlyingEnemyActor* enemyActor) const;
 
-	UFUNCTION(BlueprintCallable, Category = "Navigation")
-	void UpdateWaypoint(AFlyingEnemyActor* enemyActor);
+	FVector GetNextWaypoint(int waypointIndex) const;
+
+	void UpdateWaypoint(int& waypointIndex);
 
 protected:
 	// Called when the game starts or when spawned

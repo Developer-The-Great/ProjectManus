@@ -11,6 +11,7 @@
 class AFlyingCharacterPawn;
 class UBoxComponent;
 class UFloatingPawnMovement;
+class AWaypointOrganizer;
 
 UCLASS()
 class PROJECTMANUS_API AFlyingEnemyActor : public APawn
@@ -26,6 +27,8 @@ private:
 	float mLineLength;
 
 	int currentWaypointIndex = 0;
+
+	AWaypointOrganizer* waypointOrganizer = nullptr;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -50,7 +53,6 @@ public:
 	UPROPERTY(Category = "Scoring System", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float pointsReceived = 1000.0f;
 
-
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
@@ -66,6 +68,13 @@ public:
 
 	UFUNCTION()
 	void HealthChangedCallback(float newHealth, float Damage, AActor* DamageCauser);
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	FVector GetNextWaypoint() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	void UpdateWaypoint();
+
 
 protected:
 	// Called when the game starts or when spawned
