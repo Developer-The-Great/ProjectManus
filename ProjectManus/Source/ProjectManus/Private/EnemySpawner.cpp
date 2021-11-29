@@ -22,7 +22,7 @@ void AEnemySpawner::OnOverlapComponent(UPrimitiveComponent* OverlappedComponent,
 		AFlyingEnemyActor* enemy = dynamic_cast<AFlyingEnemyActor*>(enemyAsActor);
 
 		enemy->DirectSetWaypointIndex(firstWayPointDestination->GetWaypointIndex());
-
+		enemy->SetStartPoint(goToAfterSpawnDestination->GetComponentLocation());
 	}
 }
 

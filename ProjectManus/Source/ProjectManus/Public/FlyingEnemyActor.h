@@ -29,29 +29,32 @@ private:
 	int currentWaypointIndex = 0;
 
 	AWaypointOrganizer* waypointOrganizer = nullptr;
+
+	bool bHasReachedStartPoint = false;
+	FVector firstStartPoint;
+
+	UPROPERTY(Category = "Mesh", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* planeMesh = nullptr;
+
+	UPROPERTY(Category = "Health", VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
+		UHealthComponent* healthComponent = nullptr;
+
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+		UFloatingPawnMovement* movementComponent = nullptr;
+
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		float maxSpeed = 30.0f;
+
+	UPROPERTY(Category = "Scoring System", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		float pointsReceived = 1000.0f;
 	
 public:	
 	// Sets default values for this actor's properties
 	AFlyingEnemyActor();
 
-	UPROPERTY(Category = "Mesh", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* planeMesh = nullptr;
-
-	UPROPERTY(Category = "Health", VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-	UHealthComponent* healthComponent = nullptr;
-
-	UPROPERTY(Category = "Movement", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
-	UFloatingPawnMovement* movementComponent = nullptr;
-
 	int GetCurrentWaypointIndex() const { return currentWaypointIndex; }
 
 	void SetWaypointIndex(int newIndex) { currentWaypointIndex = newIndex; }
-
-	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float speed = 30.0f;
-
-	UPROPERTY(Category = "Scoring System", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float pointsReceived = 1000.0f;
 
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor,
@@ -77,6 +80,20 @@ public:
 
 	void DirectSetWaypointIndex(int index) { currentWaypointIndex = index; }
 
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	void DeclareReachedStartPoint() { bHasReachedStartPoint = true; }
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	bool GetReachedStartPointState() const { return bHasReachedStartPoint; }
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	FVector GetStartPoint() const { return firstStartPoint; }
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	void SetStartPoint(const FVector& startPoint) { firstStartPoint = startPoint; }
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	void UpdateMovementSpeedWithLayerSystem();
 
 protected:
 	// Called when the game starts or when spawned

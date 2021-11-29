@@ -109,6 +109,27 @@ void AFlyingEnemyActor::UpdateWaypoint()
 	}
 }
 
+void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem()
+{
+
+	float playerProgress = waypointOrganizer->CalculateLayerProgress(0);
+	float selfProgress = waypointOrganizer->CalculateWaypointProgress( GetActorLocation() );
+
+	float diff = playerProgress - selfProgress;
+
+	int mult = diff < 0 ? -1 : 1;
+	float boost = FMath::Abs(diff) > 0.1f ? 100.0f : 0;
+
+
+	UE_LOG(LogTemp, Warning, TEXT("diff %f"), diff);
+	UE_LOG(LogTemp, Warning, TEXT("boost %f"), boost);
+
+	movementComponent->MaxSpeed += ( 50 * (diff )) + boost * mult;
+
+	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 1000.0f, 5000.0f );
+
+}
+
 // Called when the game starts or when spawned
 void AFlyingEnemyActor::BeginPlay()
 {
@@ -135,98 +156,17 @@ void AFlyingEnemyActor::BeginPlay()
 
 	waypointOrganizer = dynamic_cast<AWaypointOrganizer*>(foundWaypoint);
 
-	
+	//movementComponent->MaxSpeed = maxSpeed;
 
 }
 
 // Called every frame
 void AFlyingEnemyActor::Tick(float DeltaTime)
 {
-
-	SetActorLocation(GetActorLocation() + GetActorUpVector() * speed * DeltaTime, true, nullptr);
-
-	//FHitResult result;
-	//FCollisionQueryParams params;
-	//params.AddIgnoredActor(this);
-
-	//FVector dir; float length;
-	//defaultLine.ToDirectionAndLength(dir, length);
-
-	//FVector transformLineVec = GetActorTransform().TransformVector( GetActorForwardVector() * mLineLength);
-
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + transformLineVec, FColor(255, 0, 0), false);
-
-	//if (GetWorld()->LineTraceSingleByChannel(result,
-	//	GetActorLocation(), GetActorLocation() + transformLineVec, ECollisionChannel::ECC_Visibility, params) )
-	//{
-
-	//	mainBoxComponent->SetWorldLocation(GetActorLocation() + GetActorUpVector() * result.Distance, false, nullptr, ETeleportType::TeleportPhysics);
-	//	
-	//	UE_LOG(LogTemp, Warning, TEXT("VISIBILITY BOXES SHORTENED dir: %s %f"), *(dir.ToString() ) ,result.Distance);
-	//}
-	//else
-	//{
-	//	mainBoxComponent->SetWorldLocation( GetActorLocation() + transformLineVec,false,nullptr,ETeleportType::TeleportPhysics);
-	//}
-
-	//Super::Tick(DeltaTime);
-	//DrawDebugPoint(GetWorld(), mainBoxComponent->GetComponentTransform().GetLocation()  , 5, FColor(52, 220, 239), false);
-	//DrawDebugBox(GetWorld(), mainBoxComponent->GetComponentTransform().GetLocation(), mainBoxComponent->GetScaledBoxExtent(), FColor(52, 220, 239), false);
-	//
-
-	////if mainBoxComponent has any overlapping actors
-	//TArray<AActor*> overlappingActors;
-	//mainBoxComponent->GetOverlappingActors(overlappingActors);
-
-	//for (UBoxComponent* boxComponent : movementOptionBoxes)
-	//{
-	//	TArray<AActor*> boxOverlappingActors;
-	//	boxComponent->GetOverlappingActors(boxOverlappingActors);
-
-	//	if (boxOverlappingActors.Num() == 0)
-	//	{
-	//		DrawDebugBox(GetWorld(), boxComponent->GetComponentTransform().GetLocation(), boxComponent->GetScaledBoxExtent(), FColor(0, 255, 0), false);
-	//		
-	//		UE_LOG(LogTemp, Warning, TEXT("Found debug box"));
-	//	}
-	//	else
-	//	{
-	//		DrawDebugBox(GetWorld(), boxComponent->GetComponentTransform().GetLocation(), boxComponent->GetScaledBoxExtent(), FColor(255, 0, 0), false);
-	//		UE_LOG(LogTemp, Warning, TEXT("this box is overlapping"));
-	//	}
-
-	//}
-
-	//if (overlappingActors.Num() == 0) { return; }
-
-	//UE_LOG(LogTemp,Warning,TEXT("FOUND OVERLAPPING ACTORS DIVERT COURSE NOW"));
-
-	//
-
-	//
-
-	//for (UBoxComponent* boxComponent : movementOptionBoxes)
-	//{
-	//	TArray<AActor*> boxOverlappingActors;
-	//	boxComponent->GetOverlappingActors(boxOverlappingActors);
-
-	//	if (boxOverlappingActors.Num() == 0)
-	//	{
-	//		FRotator CurrentRotation = GetActorRotation();
-
-	//		FVector forward = (boxComponent->GetComponentTransform().GetLocation() - GetActorLocation());
-	//		forward.Normalize();
-
-	//		FVector right = UKismetMathLibrary::Cross_VectorVector(forward, GetActorUpVector());
-	//		FVector up = UKismetMathLibrary::Cross_VectorVector(right, forward);
-
-	//		FRotator newRot = UKismetMathLibrary::MakeRotationFromAxes(forward, right, up);
-
-	//		SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), newRot.Quaternion(), 0.01f));
-	//		break;
-	//	}
-	//}
-
+	if (bHasReachedStartPoint)
+	{
+		//UpdateMovementSpeedWithLayerSystem();
+	}
 
 }
 

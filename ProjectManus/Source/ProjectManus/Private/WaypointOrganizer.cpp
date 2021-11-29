@@ -1,10 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "WaypointOrganizer.h"
+#include "DrawDebugHelpers.h"
 #include "WaypointActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "FlyingEnemyActor.h"
+
+void AWaypointOrganizer::UpdateLayers()
+{
+
+
+}
 
 // Sets default values
 AWaypointOrganizer::AWaypointOrganizer()
@@ -40,6 +45,7 @@ void AWaypointOrganizer::UpdateWaypoint(int& waypointIndex)
 
 }
 
+
 // Called when the game starts or when spawned
 void AWaypointOrganizer::BeginPlay()
 {
@@ -65,6 +71,14 @@ void AWaypointOrganizer::BeginPlay()
 	});
 
 	UE_LOG(LogTemp, Warning, TEXT("number of waypoints found %d"), waypointArray.Num());
+
+	playerActor = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	if (layerOffset.Num() == 0)
+	{
+		layerOffset.Add(500.0f);
+		UE_LOG(LogTemp, Warning, TEXT("NO LAYER FOUND, DEFAULT LAYER HAS BEEN ADDED!"));
+	}
 }
 
 // Called every frame
@@ -72,5 +86,74 @@ void AWaypointOrganizer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	float progress = CalculateLayerProgress(0);
+	float index = FMath::TruncToFloat(progress);
+
+	/*FVector start = waypointArray[static_cast<int>(index)]->GetActorLocation();
+	FVector end = waypointArray[static_cast<int>(index) + 1]->GetActorLocation();*/
+
+	//DrawDebugLine(
+	//		GetWorld(),
+	//		playerActor->GetActorLocation(),
+	//		start + (end - start) * (progress - index),
+	//	 	FColor::Red, false);
+
 }
+
+float AWaypointOrganizer::CalculateWaypointProgress(const FVector& layerPoint) const
+{
+	int closestWayPoint = -1;
+	float lowestPointDistance = TNumericLimits<float>::Max();
+	FVector closestPointInLine;
+
+	for (size_t i = 0; i < waypointArray.Num() - 1; i++)
+	{
+		FVector currentPointInLine = FMath::ClosestPointOnSegment(layerPoint,
+			waypointArray[i]->GetActorLocation(), waypointArray[i + 1]->GetActorLocation());
+
+		float pointDistance = FVector(currentPointInLine - layerPoint).Size();
+
+		if (pointDistance < lowestPointDistance)
+		{
+			lowestPointDistance = pointDistance;
+			closestPointInLine = currentPointInLine;
+			closestWayPoint = i;
+		}
+	}
+
+	float pointInLineToStartDist = FVector(
+		waypointArray[closestWayPoint]->GetActorLocation() -
+		closestPointInLine).Size();
+
+	float closestLineLength =
+		FVector(
+			waypointArray[closestWayPoint]->GetActorLocation() -
+			waypointArray[closestWayPoint + 1]->GetActorLocation()).Size();
+
+	return static_cast<float>(closestWayPoint) + ( pointInLineToStartDist / closestLineLength );
+}
+
+float AWaypointOrganizer::CalculateLayerProgress(int index)
+{
+	FVector playerLoc = playerActor->GetActorLocation();
+
+	int waypointIndex = static_cast<int>( CalculateWaypointProgress( playerLoc ) );
+
+	if (waypointIndex == waypointArray.Num() - 1)
+	{
+		return waypointIndex;
+	}
+
+	FVector normWaypointDir(waypointArray[waypointIndex + 1]->GetActorLocation() -
+		waypointArray[waypointIndex]->GetActorLocation());
+
+	normWaypointDir.Normalize();
+
+	FVector offset = normWaypointDir * layerOffset[0];
+
+	FVector layerWorldLoc = playerLoc + offset;
+
+	return CalculateWaypointProgress(layerWorldLoc);
+}
+
 

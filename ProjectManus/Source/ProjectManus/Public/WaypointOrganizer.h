@@ -12,10 +12,19 @@ class AWaypointActor;
 UCLASS()
 class PROJECTMANUS_API AWaypointOrganizer : public AActor
 {
+
 	GENERATED_BODY()
 
 private:
 	TArray<AWaypointActor*> waypointArray;
+
+	AActor* playerActor = nullptr;
+
+	UPROPERTY(Category = "AI Layer System", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TArray<float> layerOffset;
+
+	void UpdateLayers();
+
 	
 public:	
 	// Sets default values for this actor's properties
@@ -24,6 +33,10 @@ public:
 	FVector GetNextWaypoint(int waypointIndex) const;
 
 	void UpdateWaypoint(int& waypointIndex);
+
+	float CalculateWaypointProgress(const FVector& layerPoint) const;
+
+	float CalculateLayerProgress(int index);
 
 protected:
 	// Called when the game starts or when spawned
