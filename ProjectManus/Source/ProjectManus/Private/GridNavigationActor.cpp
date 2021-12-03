@@ -161,11 +161,6 @@ bool Grid3DArray::GetIndexAt(FIntVector vectorIndex) const
 {
 	int index = CalculateIndex(vectorIndex);
 
-	if (vectorIndex == FIntVector(1, 1, 0))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("BlockState %d"), data[index]);
-
-	}
 	return data[index];
 }
 

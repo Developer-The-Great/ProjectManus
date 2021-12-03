@@ -6,7 +6,8 @@
 #include "WaypointActor.h"
 #include "FlyingEnemyActor.h"
 #include "FlyingCharacterPawn.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "WaypointOrganizer.h"
 
 void AEnemySpawner::OnOverlapComponent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -23,6 +24,8 @@ void AEnemySpawner::OnOverlapComponent(UPrimitiveComponent* OverlappedComponent,
 
 		enemy->DirectSetWaypointIndex(firstWayPointDestination->GetWaypointIndex());
 		enemy->SetStartPoint(goToAfterSpawnDestination->GetComponentLocation());
+		enemy->SetWaypointOrganizer(waypointOrganizer);
+		enemy->SetPlayer(playerActor);
 	}
 }
 
@@ -53,6 +56,23 @@ void AEnemySpawner::BeginPlay()
 	if (!firstWayPointDestination)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WAYPOINT NULL"));
+	}
+
+	AActor* foundWaypoint = UGameplayStatics::GetActorOfClass(GetWorld(), AWaypointOrganizer::StaticClass());
+
+	if (!foundWaypoint)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO WAYPOINT FOUND "));
+		return;
+	}
+
+	waypointOrganizer = dynamic_cast<AWaypointOrganizer*>(foundWaypoint);
+
+	playerActor = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	if (!playerActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
 	}
 }
 

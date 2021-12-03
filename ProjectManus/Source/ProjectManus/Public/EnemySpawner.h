@@ -9,6 +9,7 @@
 class AFlyingEnemyActor;
 class AWaypointActor;
 class UBoxComponent;
+class AWaypointOrganizer;
 
 UCLASS()
 class PROJECTMANUS_API AEnemySpawner : public AActor
@@ -31,6 +32,10 @@ private:
 
 	UPROPERTY(Category = "Spawn Parameters", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	AWaypointActor* firstWayPointDestination;
+
+	AWaypointOrganizer* waypointOrganizer = nullptr;
+
+	AActor* playerActor;
 
 	bool bHasPlayerEntered = false;
 

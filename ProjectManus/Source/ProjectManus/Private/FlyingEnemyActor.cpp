@@ -130,6 +130,11 @@ void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem()
 
 }
 
+void AFlyingEnemyActor::SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer)
+{
+	waypointOrganizer = aWaypointOrganizer;
+}
+
 // Called when the game starts or when spawned
 void AFlyingEnemyActor::BeginPlay()
 {
@@ -138,25 +143,6 @@ void AFlyingEnemyActor::BeginPlay()
 	SetActorRotation(FVector(0, 0, 1).ToOrientationRotator());
 	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnProjectileOverlap);
 	healthComponent->OnHealthChangedEvent.AddDynamic(this, &AFlyingEnemyActor::HealthChangedCallback);
-
-	player = GetWorld()->GetFirstPlayerController()->GetPawn();
-
-	if (!player)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
-	}
-
-	AActor* foundWaypoint = UGameplayStatics::GetActorOfClass(GetWorld(), AWaypointOrganizer::StaticClass());
-
-	if(!foundWaypoint) 
-	{
-		UE_LOG(LogTemp, Warning, TEXT("NO WAYPOINT FOUND "));
-		return;
-	}
-
-	waypointOrganizer = dynamic_cast<AWaypointOrganizer*>(foundWaypoint);
-
-	//movementComponent->MaxSpeed = maxSpeed;
 
 }
 

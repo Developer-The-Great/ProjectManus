@@ -5,6 +5,7 @@
 
 void UShieldComponent::BeginPlay()
 {
+	Super::BeginPlay();
 	shieldHealthCurrent = shieldHealthMax;
 }
 

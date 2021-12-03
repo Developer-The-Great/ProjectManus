@@ -17,6 +17,9 @@ public:
 	// Sets default values for this actor's properties
 	AWaypointActor();
 
+
+	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -27,12 +30,26 @@ public:
 
 	int GetWaypointIndex() const { return index; }
 
+	FVector CalculateOffsetedWaypointDestination();
+
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 private:
+
+	UPROPERTY(Category = "Navigation", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+		int halfNumZBlocks = 10;
+	UPROPERTY(Category = "Navigation",  EditAnywhere, meta = (AllowPrivateAccess = "true"))
+		int halfNumYBlocks = 10;
+
+	UPROPERTY(Category = "Navigation", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+		float offset = 500;
 
 	USceneComponent* sceneComponent = nullptr;
 
-	FVector destinationOffset;
-	FVector spawnOffset;
+	TArray<FIntPoint> possiblePositionIndices;
+	TArray<bool> possiblePositionFillState;
+
+	void Init(bool drawResult);
 
 	UPROPERTY(Category = "Waypoint Index", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int index = -1;

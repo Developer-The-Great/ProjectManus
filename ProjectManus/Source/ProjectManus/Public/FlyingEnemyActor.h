@@ -95,6 +95,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void UpdateMovementSpeedWithLayerSystem();
 
+	void SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer);
+
+	void SetPlayer(AActor* aPlayer) { player = aPlayer; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

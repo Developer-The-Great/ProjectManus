@@ -28,7 +28,7 @@ FVector AWaypointOrganizer::GetNextWaypoint(int waypointIndex) const
 
 	}
 
-	return waypointArray[waypointIndex]->GetActorLocation();
+	return waypointArray[waypointIndex]->CalculateOffsetedWaypointDestination();
 }
 
 void AWaypointOrganizer::UpdateWaypoint(int& waypointIndex)
