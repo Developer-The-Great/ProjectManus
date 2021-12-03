@@ -93,7 +93,7 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 		{
 			if (positionScore[i] > largestValueFound)
 			{
-				positionScore[i] = largestValueFound;
+				largestValueFound = positionScore[i];
 				positionIndex = i;
 			}
 		}
