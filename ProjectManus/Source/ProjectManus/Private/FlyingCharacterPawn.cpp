@@ -16,6 +16,7 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "DrawDebugHelpers.h"
+#include "Projectile.h"
 
 constexpr float shieldDamageOnTerrain = 2.0f;
 constexpr float shieldDamageOnEnemy = 1.0f;
@@ -82,13 +83,14 @@ void AFlyingCharacterPawn::BeginPlay()
 	}
 
 	planeMesh->OnComponentHit.AddDynamic(this, &AFlyingCharacterPawn::OnCollision);
+	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AFlyingCharacterPawn::OnProjectileOverlap);
 
 	characterSpeedCached = characterSpeed;
 
 	FTimerHandle moveDelay;
 
 	GetWorldTimerManager().SetTimer(
-		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 13.0f, false);
+		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 3.0f, false);
 
 }
 
@@ -129,6 +131,7 @@ void AFlyingCharacterPawn::FireProjectile()
 
 void AFlyingCharacterPawn::BeginFire()
 {
+	shooterComponent->SetProjectileDirection(GetActorForwardVector());
 	shooterComponent->BeginFire();
 }
 
@@ -162,6 +165,8 @@ void AFlyingCharacterPawn::activateMovement()
 
 void AFlyingCharacterPawn::rotatePlayerBasedOnHand()
 {
+	if (!bIsUsingManusGloves) { return; }
+
 	FVector hand = handComponentToFollow->GetSocketLocation("hand_r");
 	FVector index = handComponentToFollow->GetSocketLocation("index_01_r");
 	FVector middle = handComponentToFollow->GetSocketLocation("middle_01_r");
@@ -188,17 +193,18 @@ void AFlyingCharacterPawn::rotatePlayerBasedOnHand()
 
 void AFlyingCharacterPawn::moveOnPlayerForward( float DeltaTime )
 {
-	externalVelocity += GetActorForwardVector() * characterSpeed * DeltaTime;
+	
 	externalVelocity *= 0.9f;
+	FVector offsetDelta = externalVelocity * DeltaTime;
 
-	FVector unitDirection; float length;
-	externalVelocity.ToDirectionAndLength(unitDirection, length);
 
 	SetActorLocation(
-		GetActorLocation() + externalVelocity,
+		GetActorLocation() + GetActorForwardVector() * (characterSpeed ) * DeltaTime + offsetDelta,
 		true,
 		nullptr,
 		ETeleportType::None);
+
+	//UE_LOG(LogTemp, Warning, TEXT("externalVelocity %s"), *(externalVelocity.ToString()) );
 }
 
 bool AFlyingCharacterPawn::checkRightHandPointingUp()
@@ -215,14 +221,34 @@ bool AFlyingCharacterPawn::checkRightHandPointingUp()
 	return angleFromUp < shieldActivationAngleDegrees;
 }
 
+void AFlyingCharacterPawn::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (auto projectile = dynamic_cast<AProjectile*>(OtherActor) )
+	{
+		if (projectile->GetSpawnerActor() != this)
+		{
+			if (!shieldComponent->GetShieldActiveState())
+			{
+				UGameplayStatics::ApplyDamage(this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass());
+			}
+			else
+			{
+				shieldComponent->DamageShield(1.0f);
+			}
+		}
+		
+	}
+}
+
 void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (bIsAbleToReactToCollision)
 	{
 		bIsAbleToReactToCollision = false;
 
-		externalVelocity = UKismetMathLibrary::GetReflectionVector( externalVelocity , Hit.Normal) + Hit.Normal * onCollisionBounceFactor;
+		externalVelocity = Hit.Normal * onCollisionBounceFactor;
 
+		UE_LOG(LogTemp,Warning,TEXT("externalVelocity %s"), *(externalVelocity.ToString()) )
 		//characterSpeed = 0.0f;
 
 		GetWorldTimerManager().SetTimer(
@@ -243,7 +269,7 @@ void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActo
 
 	// Deflect along the surface when we collide.
 	FRotator CurrentRotation = GetActorRotation();
-	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), Hit.Normal.ToOrientationQuat(), 0.01f));
+	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), Hit.Normal.ToOrientationQuat(), 0.04f));
 
 }
 

@@ -13,7 +13,6 @@ void AEnemySpawner::OnOverlapComponent(UPrimitiveComponent* OverlappedComponent,
 {
 	if (!bHasPlayerEntered && dynamic_cast<AFlyingCharacterPawn*>(OtherActor) )
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Overlap Spawn"));
 		bHasPlayerEntered = true;
 
 		FActorSpawnParameters spawnParams;

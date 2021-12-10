@@ -18,6 +18,9 @@ private:
 	//------------------------------------- WEAPON VARIABLES --------------------------------------------------// 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	bool useOwnerDir = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	int defaultAmno;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
@@ -37,6 +40,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	float FiringRPM = 600.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	float projectileSpeed = 1000.0f;
+
+	FVector shootDirection;
+	FVector projectileSpawn;
 
 public:	
 	// Sets default values for this component's properties
@@ -58,6 +67,16 @@ public:
 		ClearReloadTime();
 	}
 	
+	void SetProjectileSpeed(float aProjectileSpeed) { projectileSpeed = aProjectileSpeed; }
+
+	float GetProjectileSpeed() const { return projectileSpeed; }
+
+	void SetProjectileDirection(FVector aProjectileDir) 
+	{ 
+		shootDirection = aProjectileDir; 
+		shootDirection.Normalize();
+	}
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

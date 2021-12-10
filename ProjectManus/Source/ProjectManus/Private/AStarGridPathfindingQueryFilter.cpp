@@ -69,7 +69,7 @@ bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA,
 		return gridActor->IsGridCellWalkable(startNode + neighborsOffset);
 	};
 
-	if (dimensionsTraversed == twoDimensionTraversalAmount)
+	/*if (dimensionsTraversed == twoDimensionTraversalAmount)
 	{
 
 		for (size_t i = 0; i < traversalDelta.Num(); i++)
@@ -83,8 +83,8 @@ bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA,
 		}
 
 
-	}
-	else if (dimensionsTraversed == threeDimensionTraversalAmount)
+	}*/
+	if (dimensionsTraversed == threeDimensionTraversalAmount)
 	{
 		for (size_t i = 0; i < traversalDelta.Num(); i++)
 		{

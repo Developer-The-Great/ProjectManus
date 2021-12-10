@@ -59,7 +59,7 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 
 	if (foundFilled)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FURTHEST POINT FIND"));
+		//UE_LOG(LogTemp, Warning, TEXT("FURTHEST POINT FIND"));
 
 		TArray<float> positionScore;
 		positionScore.Init(-1.0f, possiblePositionFillState.Num());
@@ -103,7 +103,7 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("RANDOM POS FIND"));
+		//UE_LOG(LogTemp, Warning, TEXT("RANDOM POS FIND"));
 		finalIndex = FMath::RandRange(0, possiblePositionIndices.Num() - 1);
 
 	}
@@ -117,10 +117,6 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 
 	resultPosition = lowestAvailablePosition
 		+ FVector(0.0f, indexPosition.X * offset, 0.0f) + FVector(0.0f, 0.0f, indexPosition.Y * offset);
-
-	DrawDebugBox(GetWorld(),
-		resultPosition,
-		FVector(offset * 0.5f), FColor::Green, false, 5.0f, 100);
 
 	return resultPosition;
 }
@@ -152,17 +148,20 @@ void AWaypointActor::Init(bool drawResult)
 
 				FIntVector positionInGrid = gridNavigationActor->GetGridPositionFromWorldPosition(blockPosition);
 
+				auto isValidAndWalkable = [&gridNavigationActor](FIntVector positionInGrid)->bool
+				{
+					return gridNavigationActor->IsGridCellValid(positionInGrid) && gridNavigationActor->IsGridCellWalkable(positionInGrid);
+				};
 				
-				if ( gridNavigationActor->IsGridCellValid(positionInGrid) && gridNavigationActor->IsGridCellWalkable(positionInGrid))
+				if (isValidAndWalkable(positionInGrid) 
+					&& isValidAndWalkable(positionInGrid + FIntVector(-1,0,0) )
+					&& isValidAndWalkable(positionInGrid + FIntVector( 1,0,0) ))
 				{
 					if (drawResult)
 					{
-						DrawDebugBox(GetWorld(),
+						/*DrawDebugBox(GetWorld(),
 							blockPosition,
-							FVector(offset * 0.5f), FColor::Red, false, 30.0f, 100);
-
-						
-
+							FVector(offset * 0.5f), FColor::Red, false, 5.0f, 100);*/
 					}
 
 					possiblePositionIndices.Add(FIntPoint(y, z));

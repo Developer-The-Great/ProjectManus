@@ -62,6 +62,9 @@ private:
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float onCollisionBounceFactor = 1.0f;
 
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bIsUsingManusGloves = true;
+
 	float characterSpeedCached;
 
 	bool bIsMovementEnabled = false;
@@ -70,6 +73,9 @@ private:
 
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+		void OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	bool bIsAbleToReactToCollision = true;
 
@@ -110,6 +116,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ScoreTracking")
 	float GetCurrentScore() const;
+
+	float GetSpeed() const { return characterSpeed; }
 
 	void AddScore(float addedPoints);
 

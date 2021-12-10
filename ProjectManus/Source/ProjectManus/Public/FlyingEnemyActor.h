@@ -12,6 +12,7 @@ class AFlyingCharacterPawn;
 class UBoxComponent;
 class UFloatingPawnMovement;
 class AWaypointOrganizer;
+class UShooterComponent;
 
 UCLASS()
 class PROJECTMANUS_API AFlyingEnemyActor : public APawn
@@ -41,6 +42,9 @@ private:
 
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 		UFloatingPawnMovement* movementComponent = nullptr;
+
+	UPROPERTY(Category = "Shooting", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+		UShooterComponent* shooterComponent = nullptr;
 
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		float maxSpeed = 30.0f;
@@ -98,6 +102,9 @@ public:
 	void SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer);
 
 	void SetPlayer(AActor* aPlayer) { player = aPlayer; }
+
+	UFUNCTION(BlueprintCallable, Category = "Navigation")
+	void ShootPlayer();
 
 protected:
 	// Called when the game starts or when spawned

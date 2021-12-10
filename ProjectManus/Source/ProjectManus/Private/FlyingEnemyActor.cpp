@@ -10,6 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/World.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "ShooterComponent.h"
 #include "WaypointOrganizer.h"
 
 // Sets default values
@@ -27,11 +28,10 @@ AFlyingEnemyActor::AFlyingEnemyActor()
 	healthComponent->SetupAttachment(planeMesh);
 
 	movementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("movementComponent"));
-	
-	//mainBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("mainBoxComponent"));
-	//mainBoxComponent->SetupAttachment(planeMesh);
-	//mainBoxComponent->SetRelativeLocation(FVector(0, 0, 500), false, nullptr, ETeleportType::TeleportPhysics);
-	//mainBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnPathBlocked);
+
+	shooterComponent = CreateDefaultSubobject<UShooterComponent>(TEXT("ShooterComponent"));
+	shooterComponent->SetupAttachment(planeMesh);
+
 }	
 
 void AFlyingEnemyActor::OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -46,15 +46,9 @@ void AFlyingEnemyActor::OnCollision(UPrimitiveComponent* HitComponent, AActor* O
 
 void AFlyingEnemyActor::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("PROJECTILE damage "));
-
 	if ( dynamic_cast<AProjectile*>(OtherActor) )
 	{
-		
 		float damageApplied = UGameplayStatics::ApplyDamage( this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass() );
-
-		UE_LOG( LogTemp, Warning, TEXT("ENEMY HIT PROJECTILE damage %f"), damageApplied );
-		//UGameplayStatics::ApplyPointDamage(this,)
 	}
 }
 
@@ -126,7 +120,7 @@ void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem()
 
 	movementComponent->MaxSpeed += ( 50 * (diff )) + boost * mult;
 
-	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 1000.0f, 5000.0f );
+	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 3000.0f, 10000.0f );
 
 }
 
@@ -135,14 +129,85 @@ void AFlyingEnemyActor::SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrgani
 	waypointOrganizer = aWaypointOrganizer;
 }
 
+void AFlyingEnemyActor::ShootPlayer()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ShootPlayer"));
+	//no player cant shoot player
+	if (!player) { UE_LOG(LogTemp, Warning, TEXT("ERROR NO PLAYER"));  return; }
+
+	//[1] Calculate Direction needed to shoot player
+	FVector forward = player->GetActorForwardVector();
+
+	FVector playerLoc = player->GetActorLocation();
+	FVector selfLoc = shooterComponent->GetComponentLocation();
+
+	FVector selfToPlayer = selfLoc - playerLoc;
+
+	AFlyingCharacterPawn* playerAsAFCP = dynamic_cast<AFlyingCharacterPawn*>(player);
+	
+	float E = shooterComponent->GetProjectileSpeed();
+	float P = playerAsAFCP->GetSpeed();
+
+	float c = (P * P) - (E * E);
+
+	float dx = FVector::DotProduct(selfToPlayer, forward);
+
+	//enemy is behind player, dont shoot
+	if (dx < 0) { UE_LOG(LogTemp, Warning, TEXT("ENEMY BEHIND PLAYER"));  return; }
+
+	UE_LOG(LogTemp, Warning, TEXT("P %f"), P);
+
+	float dy = ((selfToPlayer) - (forward * dx)).Size();
+
+	float b = -2 * ( dx / dy) * P;
+
+	float a =  ( (dx*dx) / (dy*dy) ) + 1;
+
+	float b2Min4ac = (b * b) - (4 * a * c);
+	
+	float b2Min4acRoot = FMath::Sqrt(b2Min4ac);
+
+	float firstResult = (-b + b2Min4acRoot) / (2 * a);
+	float secondResult = (-b - b2Min4acRoot) / (2 * a);
+
+
+	float vy = FMath::Max(firstResult, secondResult);
+	float vx = FMath::Sqrt( (E * E) - (vy * vy) );
+	
+	FVector parallelProjectileVec = -forward * vx;
+
+	
+
+	FVector closestPoint = FMath::ClosestPointOnInfiniteLine(playerLoc, playerLoc + forward, selfLoc);
+
+	FVector perpendicularToPlayerVecNorm = closestPoint - selfLoc;
+	perpendicularToPlayerVecNorm.Normalize();
+
+	FVector perpendicularPlayerProjectile = perpendicularToPlayerVecNorm * vy;
+
+	FVector finalVec = parallelProjectileVec + perpendicularPlayerProjectile;
+	finalVec.Normalize();
+
+	shooterComponent->SetProjectileSpeed(E);
+	shooterComponent->SetProjectileDirection( finalVec );
+	shooterComponent->FireProjectile();
+}
+
 // Called when the game starts or when spawned
 void AFlyingEnemyActor::BeginPlay()
 {
 	Super::BeginPlay();
 
 	SetActorRotation(FVector(0, 0, 1).ToOrientationRotator());
+
 	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnProjectileOverlap);
 	healthComponent->OnHealthChangedEvent.AddDynamic(this, &AFlyingEnemyActor::HealthChangedCallback);
+
+	FTimerHandle projectileFiringTimeHandle;
+	GetWorldTimerManager().SetTimer(projectileFiringTimeHandle,
+		this,
+		&AFlyingEnemyActor::ShootPlayer,
+		3.0f, true);
 
 }
 
@@ -151,8 +216,10 @@ void AFlyingEnemyActor::Tick(float DeltaTime)
 {
 	if (bHasReachedStartPoint)
 	{
-		//UpdateMovementSpeedWithLayerSystem();
+		UpdateMovementSpeedWithLayerSystem();
 	}
+
+	//ShootPlayer();
 
 }
 
