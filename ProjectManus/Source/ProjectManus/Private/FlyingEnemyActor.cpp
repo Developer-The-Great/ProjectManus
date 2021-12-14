@@ -114,11 +114,7 @@ void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem()
 	int mult = diff < 0 ? -1 : 1;
 	float boost = FMath::Abs(diff) > 0.1f ? 100.0f : 0;
 
-
-	UE_LOG(LogTemp, Warning, TEXT("diff %f"), diff);
-	UE_LOG(LogTemp, Warning, TEXT("boost %f"), boost);
-
-	movementComponent->MaxSpeed += ( 50 * (diff )) + boost * mult;
+	movementComponent->MaxSpeed += ( 75 * (diff )) + boost * mult;
 
 	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 3000.0f, 10000.0f );
 

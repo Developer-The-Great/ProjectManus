@@ -4,6 +4,8 @@
 #include "GridNavigationActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "WaypointActor.h"
 
 // Sets default values
 AGridNavigationActor::AGridNavigationActor()
@@ -11,6 +13,12 @@ AGridNavigationActor::AGridNavigationActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	navigationGrid.Init(navigationGridBlockDimensions.X, navigationGridBlockDimensions.Y, navigationGridBlockDimensions.Z);
+
+	actorRoot = CreateDefaultSubobject<USceneComponent>(TEXT("NavigationRoot"));
+	RootComponent = actorRoot;
+
+	enemyAltitudeLimit = CreateDefaultSubobject<USceneComponent>(TEXT("AltitudeLimit"));
+	enemyAltitudeLimit->SetupAttachment(actorRoot);
 }
 
 void AGridNavigationActor::SetNodeBlockedState(const FIntVector& gridPosition, bool newNodeState)
@@ -66,7 +74,20 @@ void AGridNavigationActor::BeginPlay()
 		InitializeGridUsingEnviroment();
 		isGridInit = true;
 	}
-	
+
+	gridAltitudeLimit = 
+		(enemyAltitudeLimit->GetComponentLocation().Z - GetActorLocation().Z) / blockDimensions.Z;
+
+	TArray<AActor*> waypointActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWaypointActor::StaticClass(), waypointActors);
+
+	for (AActor* waypointAsActor : waypointActors)
+	{
+		AWaypointActor* waypointActor = dynamic_cast<AWaypointActor*>(waypointAsActor);
+		waypointActor->Init(false);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("gridAltitudeLimit %d"), gridAltitudeLimit);
 }
 
 // Called every frame

@@ -37,6 +37,12 @@ class PROJECTMANUS_API AGridNavigationActor : public AActor
 public:	
 
 	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
+	USceneComponent* actorRoot;
+
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
+	USceneComponent* enemyAltitudeLimit;
+
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	FIntVector navigationGridBlockDimensions;
 
 	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
@@ -67,10 +73,16 @@ public:
 
 	bool IsGridCellValid(const FIntVector& gridPosition) const;
 
+	int GetAltitudeLimitInGrid() const { return gridAltitudeLimit; }
+
 private:
 
 	void InitializeGridUsingEnviroment();
 
 	Grid3DArray navigationGrid;
 	bool isGridInit = false;
+
+	int gridAltitudeLimit = 0;
+
+	
 };

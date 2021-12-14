@@ -115,6 +115,8 @@ void AFlyingCharacterPawn::Tick(float DeltaTime)
 
 	UpdateReloadState(DeltaTime);
 
+	UpdateMaximumAltitudeTimeSpent(DeltaTime);
+
 }
 
 // Called to bind functionality to input
@@ -205,6 +207,24 @@ void AFlyingCharacterPawn::moveOnPlayerForward( float DeltaTime )
 		ETeleportType::None);
 
 	//UE_LOG(LogTemp, Warning, TEXT("externalVelocity %s"), *(externalVelocity.ToString()) );
+}
+
+void AFlyingCharacterPawn::UpdateMaximumAltitudeTimeSpent(float DeltaTime)
+{
+	if (GetActorLocation().Z > maximumAltitude)
+	{
+		currentTimeSpentInMaximumAltitudeSeconds += DeltaTime;
+	}
+	else
+	{
+		currentTimeSpentInMaximumAltitudeSeconds = 0.0f;
+	}
+
+	if(currentTimeSpentInMaximumAltitudeSeconds > maxTimeSpentInMaximumAltitudeSeconds)
+	{
+		Destroy();
+	}
+	
 }
 
 bool AFlyingCharacterPawn::checkRightHandPointingUp()

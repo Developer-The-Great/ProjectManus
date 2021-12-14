@@ -34,6 +34,8 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	void Init(bool drawResult);
+
 private:
 
 	UPROPERTY(Category = "Navigation", EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -42,14 +44,14 @@ private:
 		int halfNumYBlocks = 10;
 
 	UPROPERTY(Category = "Navigation", EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
-		float offset = 500;
+		float offset = 550;
 
 	USceneComponent* sceneComponent = nullptr;
 
 	TArray<FIntPoint> possiblePositionIndices;
 	TArray<bool> possiblePositionFillState;
 
-	void Init(bool drawResult);
+	
 
 	UPROPERTY(Category = "Waypoint Index", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int index = -1;

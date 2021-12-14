@@ -27,7 +27,7 @@ FVector AWaypointOrganizer::GetNextWaypoint(int waypointIndex) const
 		return FVector();
 
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("GetNextWaypoint"));
 	return waypointArray[waypointIndex]->CalculateOffsetedWaypointDestination();
 }
 

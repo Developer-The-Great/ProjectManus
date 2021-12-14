@@ -48,6 +48,7 @@ private:
 
 	UPROPERTY(Category = "Scoring System", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UScoreTrackerComponent* scoreTrackerComponent;
+
 	//------------------------------------- Movement Variables --------------------------------------------------// 
 
 	/** The Speed of the Player */
@@ -64,6 +65,14 @@ private:
 
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIsUsingManusGloves = true;
+
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float maximumAltitude = 3480.0f;
+
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float maxTimeSpentInMaximumAltitudeSeconds = 3.0f;
+
+	float currentTimeSpentInMaximumAltitudeSeconds = 0.0f;
 
 	float characterSpeedCached;
 
@@ -95,6 +104,7 @@ private:
 	void activateMovement();
 	void rotatePlayerBasedOnHand();
 	void moveOnPlayerForward( float DeltaTime );
+	void UpdateMaximumAltitudeTimeSpent( float DeltaTime );
 
 	int poseIndex = 0;
 
@@ -116,6 +126,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ScoreTracking")
 	float GetCurrentScore() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float CalculateRemainingTimeAtMaximumAltitude() const
+	{ 
+		return maxTimeSpentInMaximumAltitudeSeconds - currentTimeSpentInMaximumAltitudeSeconds; 
+	};
 
 	float GetSpeed() const { return characterSpeed; }
 
