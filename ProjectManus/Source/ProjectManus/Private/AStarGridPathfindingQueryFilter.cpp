@@ -19,7 +19,11 @@ float AStarGridPathfindingQueryFilter::GetHeuristicScale() const
 
 float AStarGridPathfindingQueryFilter::GetHeuristicCost(const FIntVector& StartNode, const FIntVector& EndNode) const
 {
-	return FVector(StartNode - EndNode).Size();
+	int zAltitudeLimit = gridNavigationActor->GetAltitudeLimitInGrid();
+
+	float costMultiplier = EndNode.Z > zAltitudeLimit ? 2.0f : 1.0f;
+
+	return FMath::Abs(StartNode.X - EndNode.X) + FMath::Abs(StartNode.Y - EndNode.Y) + FMath::Abs(StartNode.Z - EndNode.Z) * costMultiplier;
 }
 
 float AStarGridPathfindingQueryFilter::GetTraversalCost(const FIntVector& StartNode, const FIntVector& EndNode) const
@@ -73,7 +77,7 @@ bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA,
 		return gridActor->IsGridCellWalkable(startNode + neighborsOffset);
 	};
 
-	/*if (dimensionsTraversed == twoDimensionTraversalAmount)
+	if (dimensionsTraversed == twoDimensionTraversalAmount)
 	{
 
 		for (size_t i = 0; i < traversalDelta.Num(); i++)
@@ -87,8 +91,8 @@ bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA,
 		}
 
 
-	}*/
-	if (dimensionsTraversed == threeDimensionTraversalAmount)
+	}
+	else if (dimensionsTraversed == threeDimensionTraversalAmount)
 	{
 		for (size_t i = 0; i < traversalDelta.Num(); i++)
 		{

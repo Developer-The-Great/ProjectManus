@@ -114,9 +114,11 @@ void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem()
 	int mult = diff < 0 ? -1 : 1;
 	float boost = FMath::Abs(diff) > 0.1f ? 100.0f : 0;
 
-	movementComponent->MaxSpeed += ( 75 * (diff )) + boost * mult;
+	movementComponent->MaxSpeed += ( 25 * (diff )) + boost * mult;
 
-	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 3000.0f, 10000.0f );
+	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 1000.0f, 8000.0f );
+
+	UE_LOG(LogTemp, Warning, TEXT("movementComponent->MaxSpeed %f"), movementComponent->MaxSpeed);
 
 }
 
@@ -149,7 +151,7 @@ void AFlyingEnemyActor::ShootPlayer()
 	float dx = FVector::DotProduct(selfToPlayer, forward);
 
 	//enemy is behind player, dont shoot
-	if (dx < 0) { UE_LOG(LogTemp, Warning, TEXT("ENEMY BEHIND PLAYER"));  return; }
+	if (dx < 100.0f) { UE_LOG(LogTemp, Warning, TEXT("ENEMY BEHIND PLAYER"));  return; }
 
 	UE_LOG(LogTemp, Warning, TEXT("P %f"), P);
 
@@ -194,7 +196,7 @@ void AFlyingEnemyActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorRotation(FVector(0, 0, 1).ToOrientationRotator());
+	planeMesh->SetRelativeRotation(FVector(0, 0, 1).ToOrientationRotator());
 
 	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnProjectileOverlap);
 	healthComponent->OnHealthChangedEvent.AddDynamic(this, &AFlyingEnemyActor::HealthChangedCallback);
@@ -215,6 +217,11 @@ void AFlyingEnemyActor::Tick(float DeltaTime)
 		UpdateMovementSpeedWithLayerSystem();
 	}
 
+	if (player)
+	{
+		planeMesh->SetWorldRotation( FVector::CrossProduct(player->GetActorLocation() - GetActorLocation(),FVector::UpVector) .ToOrientationRotator());
+	}
+	
 	//ShootPlayer();
 
 }

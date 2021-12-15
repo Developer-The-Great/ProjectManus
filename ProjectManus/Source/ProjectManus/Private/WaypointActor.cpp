@@ -166,7 +166,9 @@ void AWaypointActor::Init(bool drawResult)
 				
 				if (isValidAndWalkable(positionInGrid) 
 					&& isValidAndWalkable(positionInGrid + FIntVector(-1,0,0) )
-					&& isValidAndWalkable(positionInGrid + FIntVector( 1,0,0) ))
+					&& isValidAndWalkable(positionInGrid + FIntVector( 1,0,0) )
+					&& isValidAndWalkable(positionInGrid + FIntVector(-2,0,0) )
+					&& isValidAndWalkable(positionInGrid + FIntVector(2, 0,0) ))
 				{
 					if (drawResult)
 					{
