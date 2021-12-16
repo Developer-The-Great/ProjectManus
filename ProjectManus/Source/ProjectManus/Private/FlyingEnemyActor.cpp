@@ -9,13 +9,16 @@
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/World.h"
+#include "GameFramework/FloatingPawnMovement.h"
+#include "ShooterComponent.h"
+#include "WaypointOrganizer.h"
 
 // Sets default values
 AFlyingEnemyActor::AFlyingEnemyActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	planeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("planeMesh"));
 	RootComponent = planeMesh;
 
@@ -24,29 +27,28 @@ AFlyingEnemyActor::AFlyingEnemyActor()
 	healthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("healthComponent"));
 	healthComponent->SetupAttachment(planeMesh);
 
-	//mainBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("mainBoxComponent"));
-	//mainBoxComponent->SetupAttachment(planeMesh);
-	//mainBoxComponent->SetRelativeLocation(FVector(0, 0, 500), false, nullptr, ETeleportType::TeleportPhysics);
-	//mainBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnPathBlocked);
+	movementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("movementComponent"));
+
+	shooterComponent = CreateDefaultSubobject<UShooterComponent>(TEXT("ShooterComponent"));
+	shooterComponent->SetupAttachment(planeMesh);
+
 }	
 
 void AFlyingEnemyActor::OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ENEMY HIT WALL"));
-	Destroy();
+	//UE_LOG(LogTemp, Warning, TEXT("ENEMY HIT WALL"));
+	if (OtherActor == player)
+	{
+		Destroy();
+	}
+	
 }
 
 void AFlyingEnemyActor::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("PROJECTILE damage "));
-
 	if ( dynamic_cast<AProjectile*>(OtherActor) )
 	{
-		
 		float damageApplied = UGameplayStatics::ApplyDamage( this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass() );
-
-		UE_LOG( LogTemp, Warning, TEXT("ENEMY HIT PROJECTILE damage %f"), damageApplied );
-		//UGameplayStatics::ApplyPointDamage(this,)
 	}
 }
 
@@ -83,137 +85,171 @@ void AFlyingEnemyActor::HealthChangedCallback( float newHealth, float Damage, AA
 
 }
 
+FVector AFlyingEnemyActor::GetNextWaypoint() const
+{
+	if (waypointOrganizer)
+	{
+		return waypointOrganizer->GetNextWaypoint(currentWaypointIndex);
+	}
+
+	return FVector();
+}
+
+void AFlyingEnemyActor::UpdateWaypoint()
+{
+	if (waypointOrganizer)
+	{
+		waypointOrganizer->UpdateWaypoint(currentWaypointIndex);
+	}
+}
+
+void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem(float DeltaTime)
+{
+
+	float playerProgress = waypointOrganizer->CalculateLayerProgress(0);
+
+	float selfProgress = calculateSelfWaypointProgress();
+
+	float diff = playerProgress - selfProgress;
+
+	if (diff > 0.2f)
+	{
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 3000, 0.02f, 100);
+	}
+	else if (diff < -0.2f)
+	{
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 1000, 0.02f, 100);
+	}
+	else
+	{
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 2000, 0.02f, 100);
+	}
+
+
+	
+
+	UE_LOG(LogTemp, Warning, TEXT("UpdateMovementSpeedWithLayerSystem()"));
+	UE_LOG(LogTemp, Warning, TEXT("		playerProgress %f"), playerProgress);
+	UE_LOG(LogTemp, Warning, TEXT("		selfProgress %f"), selfProgress);
+	UE_LOG(LogTemp, Warning, TEXT("		movementComponent->MaxSpeed %f"), movementComponent->MaxSpeed);
+}
+
+void AFlyingEnemyActor::SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer)
+{
+	waypointOrganizer = aWaypointOrganizer;
+}
+
+void AFlyingEnemyActor::ShootPlayer()
+{
+	//no player cant shoot player
+	if (!player) { UE_LOG(LogTemp, Warning, TEXT("ERROR NO PLAYER"));  return; }
+
+	//[1] Calculate Direction needed to shoot player
+	FVector forward = player->GetActorForwardVector();
+
+	FVector playerLoc = player->GetActorLocation();
+	FVector selfLoc = shooterComponent->GetComponentLocation();
+
+	FVector selfToPlayer = selfLoc - playerLoc;
+
+	AFlyingCharacterPawn* playerAsAFCP = dynamic_cast<AFlyingCharacterPawn*>(player);
+	
+	float E = shooterComponent->GetProjectileSpeed();
+	float P = playerAsAFCP->GetSpeed();
+
+	float c = (P * P) - (E * E);
+
+	float dx = FVector::DotProduct(selfToPlayer, forward);
+
+	//enemy is behind player, dont shoot
+	if (dx < 100.0f) { UE_LOG(LogTemp, Warning, TEXT("ENEMY BEHIND PLAYER"));  return; }
+
+	float dy = ((selfToPlayer) - (forward * dx)).Size();
+
+	float b = -2 * ( dx / dy) * P;
+
+	float a =  ( (dx*dx) / (dy*dy) ) + 1;
+
+	float b2Min4ac = (b * b) - (4 * a * c);
+	
+	float b2Min4acRoot = FMath::Sqrt(b2Min4ac);
+
+	float firstResult = (-b + b2Min4acRoot) / (2 * a);
+	float secondResult = (-b - b2Min4acRoot) / (2 * a);
+
+
+	float vy = FMath::Max(firstResult, secondResult);
+	float vx = FMath::Sqrt( (E * E) - (vy * vy) );
+	
+	FVector parallelProjectileVec = -forward * vx;
+
+	
+
+	FVector closestPoint = FMath::ClosestPointOnInfiniteLine(playerLoc, playerLoc + forward, selfLoc);
+
+	FVector perpendicularToPlayerVecNorm = closestPoint - selfLoc;
+	perpendicularToPlayerVecNorm.Normalize();
+
+	FVector perpendicularPlayerProjectile = perpendicularToPlayerVecNorm * vy;
+
+	FVector finalVec = parallelProjectileVec + perpendicularPlayerProjectile;
+	finalVec.Normalize();
+
+	shooterComponent->SetProjectileSpeed(E);
+	shooterComponent->SetProjectileDirection( finalVec );
+	shooterComponent->FireProjectile();
+}
+
 // Called when the game starts or when spawned
 void AFlyingEnemyActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorRotation(FVector(0, 0, 1).ToOrientationRotator());
+	planeMesh->SetRelativeRotation(FVector(0, 0, 1).ToOrientationRotator());
+
 	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AFlyingEnemyActor::OnProjectileOverlap);
 	healthComponent->OnHealthChangedEvent.AddDynamic(this, &AFlyingEnemyActor::HealthChangedCallback);
 
-	player = GetWorld()->GetFirstPlayerController()->GetPawn();
+	FTimerHandle projectileFiringTimeHandle;
+	GetWorldTimerManager().SetTimer(projectileFiringTimeHandle,
+		this,
+		&AFlyingEnemyActor::ShootPlayer,
+		3.0f, true);
 
-	if (!player)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER FOR ENEMY "));
-	}
-
-	//TArray<USceneComponent*> allComponents;
-	//mainBoxComponent->GetChildrenComponents(false, allComponents);
-
-	//for (USceneComponent* sceneComp : allComponents)
-	//{
-	//	UBoxComponent* boxComponent = dynamic_cast<UBoxComponent*>(sceneComp);
-
-	//	if (boxComponent)
-	//	{
-	//		movementOptionBoxes.Push(boxComponent);
-	//	}
-	//}
-
-	//UE_LOG(LogTemp, Warning, TEXT("BoxComponentFound %d "), movementOptionBoxes.Num() );
-
-	//defaultLine = mainBoxComponent->GetRelativeLocation();
-
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + defaultLine, FColor(255, 0, 0), true);
-
-	//UE_LOG(LogTemp, Warning, TEXT("defaultLine %s "), *(defaultLine.ToString()));
-
-	//FVector dir; float length;
-	//defaultLine.ToDirectionAndLength(dir, length);
-
-	//mLineLength = length;
 }
 
 // Called every frame
 void AFlyingEnemyActor::Tick(float DeltaTime)
 {
+	if (bHasReachedStartPoint)
+	{
+		UpdateMovementSpeedWithLayerSystem(DeltaTime);
+	}
 
-	SetActorLocation(GetActorLocation() + GetActorUpVector() * speed * DeltaTime, true, nullptr);
+	if (player)
+	{
+		planeMesh->SetWorldRotation( FVector::CrossProduct(player->GetActorLocation() - GetActorLocation(),FVector::UpVector) .ToOrientationRotator());
+	}
+	
+	//ShootPlayer();
 
-	//FHitResult result;
-	//FCollisionQueryParams params;
-	//params.AddIgnoredActor(this);
+}
 
-	//FVector dir; float length;
-	//defaultLine.ToDirectionAndLength(dir, length);
+float AFlyingEnemyActor::calculateSelfWaypointProgress() const
+{
+	int currentWaypoint = currentWaypointIndex - 1;
 
-	//FVector transformLineVec = GetActorTransform().TransformVector( GetActorForwardVector() * mLineLength);
+	if (currentWaypoint < 0) { return 0.0f; }
 
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + transformLineVec, FColor(255, 0, 0), false);
+	auto waypointLinePair = waypointOrganizer->GetWaypointLine(currentWaypoint);
 
-	//if (GetWorld()->LineTraceSingleByChannel(result,
-	//	GetActorLocation(), GetActorLocation() + transformLineVec, ECollisionChannel::ECC_Visibility, params) )
-	//{
+	FVector closestPoint = UKismetMathLibrary::FindClosestPointOnSegment(GetActorLocation(), waypointLinePair.first, waypointLinePair.second);
 
-	//	mainBoxComponent->SetWorldLocation(GetActorLocation() + GetActorUpVector() * result.Distance, false, nullptr, ETeleportType::TeleportPhysics);
-	//	
-	//	UE_LOG(LogTemp, Warning, TEXT("VISIBILITY BOXES SHORTENED dir: %s %f"), *(dir.ToString() ) ,result.Distance);
-	//}
-	//else
-	//{
-	//	mainBoxComponent->SetWorldLocation( GetActorLocation() + transformLineVec,false,nullptr,ETeleportType::TeleportPhysics);
-	//}
+	FVector waypointVec = waypointLinePair.second - waypointLinePair.first;
 
-	//Super::Tick(DeltaTime);
-	//DrawDebugPoint(GetWorld(), mainBoxComponent->GetComponentTransform().GetLocation()  , 5, FColor(52, 220, 239), false);
-	//DrawDebugBox(GetWorld(), mainBoxComponent->GetComponentTransform().GetLocation(), mainBoxComponent->GetScaledBoxExtent(), FColor(52, 220, 239), false);
-	//
-
-	////if mainBoxComponent has any overlapping actors
-	//TArray<AActor*> overlappingActors;
-	//mainBoxComponent->GetOverlappingActors(overlappingActors);
-
-	//for (UBoxComponent* boxComponent : movementOptionBoxes)
-	//{
-	//	TArray<AActor*> boxOverlappingActors;
-	//	boxComponent->GetOverlappingActors(boxOverlappingActors);
-
-	//	if (boxOverlappingActors.Num() == 0)
-	//	{
-	//		DrawDebugBox(GetWorld(), boxComponent->GetComponentTransform().GetLocation(), boxComponent->GetScaledBoxExtent(), FColor(0, 255, 0), false);
-	//		
-	//		UE_LOG(LogTemp, Warning, TEXT("Found debug box"));
-	//	}
-	//	else
-	//	{
-	//		DrawDebugBox(GetWorld(), boxComponent->GetComponentTransform().GetLocation(), boxComponent->GetScaledBoxExtent(), FColor(255, 0, 0), false);
-	//		UE_LOG(LogTemp, Warning, TEXT("this box is overlapping"));
-	//	}
-
-	//}
-
-	//if (overlappingActors.Num() == 0) { return; }
-
-	//UE_LOG(LogTemp,Warning,TEXT("FOUND OVERLAPPING ACTORS DIVERT COURSE NOW"));
-
-	//
-
-	//
-
-	//for (UBoxComponent* boxComponent : movementOptionBoxes)
-	//{
-	//	TArray<AActor*> boxOverlappingActors;
-	//	boxComponent->GetOverlappingActors(boxOverlappingActors);
-
-	//	if (boxOverlappingActors.Num() == 0)
-	//	{
-	//		FRotator CurrentRotation = GetActorRotation();
-
-	//		FVector forward = (boxComponent->GetComponentTransform().GetLocation() - GetActorLocation());
-	//		forward.Normalize();
-
-	//		FVector right = UKismetMathLibrary::Cross_VectorVector(forward, GetActorUpVector());
-	//		FVector up = UKismetMathLibrary::Cross_VectorVector(right, forward);
-
-	//		FRotator newRot = UKismetMathLibrary::MakeRotationFromAxes(forward, right, up);
-
-	//		SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), newRot.Quaternion(), 0.01f));
-	//		break;
-	//	}
-	//}
-
-
+	float waypointLineLength;
+	waypointVec.ToDirectionAndLength(waypointVec, waypointLineLength);
+	
+	return currentWaypoint + FVector::DotProduct(closestPoint - waypointLinePair.first,waypointVec)/waypointLineLength;
 }
 

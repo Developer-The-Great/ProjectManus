@@ -27,6 +27,9 @@ public:
 
 	static FPathFindingResult FindGridPath(const FNavAgentProperties& AgentProperties, const FPathFindingQuery& Query);
 
+	bool ProjectPoint(const FVector& Point, FNavLocation& OutLocation, const FVector& Extent, 
+		FSharedConstNavQueryFilter Filter = NULL, const UObject* Querier = NULL) const override;
+
 private:
 
 	AStarGridGraph graph;

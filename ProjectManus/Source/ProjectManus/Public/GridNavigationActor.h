@@ -24,6 +24,8 @@ public:
 	bool GetIndexAt(FIntVector vectorIndex) const;
 
 	void SetIndexAt(FIntVector vectorIndex, bool newIndexState);
+
+	int32 Size() const { return data.Num(); }
 };
 
 
@@ -34,10 +36,16 @@ class PROJECTMANUS_API AGridNavigationActor : public AActor
 	
 public:	
 
-	UPROPERTY(Category = "Navigation Parameters", EditDefaultsOnly)
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
+	USceneComponent* actorRoot;
+
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
+	USceneComponent* enemyAltitudeLimit;
+
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	FIntVector navigationGridBlockDimensions;
 
-	UPROPERTY(Category = "Navigation Parameters", EditDefaultsOnly)
+	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	FVector blockDimensions;
 
 	// Sets default values for this actor's properties
@@ -45,6 +53,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void SetNodeBlockedState(const FIntVector& gridPosition, bool newNodeState);
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -63,7 +73,16 @@ public:
 
 	bool IsGridCellValid(const FIntVector& gridPosition) const;
 
+	int GetAltitudeLimitInGrid() const { return gridAltitudeLimit; }
+
 private:
 
+	void InitializeGridUsingEnviroment();
+
 	Grid3DArray navigationGrid;
+	bool isGridInit = false;
+
+	int gridAltitudeLimit = 0;
+
+	
 };

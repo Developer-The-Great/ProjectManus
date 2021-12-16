@@ -48,6 +48,7 @@ private:
 
 	UPROPERTY(Category = "Scoring System", VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UScoreTrackerComponent* scoreTrackerComponent;
+
 	//------------------------------------- Movement Variables --------------------------------------------------// 
 
 	/** The Speed of the Player */
@@ -62,6 +63,17 @@ private:
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float onCollisionBounceFactor = 1.0f;
 
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bIsUsingManusGloves = true;
+
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float maximumAltitude = 3480.0f;
+
+	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float maxTimeSpentInMaximumAltitudeSeconds = 3.0f;
+
+	float currentTimeSpentInMaximumAltitudeSeconds = 0.0f;
+
 	float characterSpeedCached;
 
 	bool bIsMovementEnabled = false;
@@ -70,6 +82,9 @@ private:
 
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+		void OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	bool bIsAbleToReactToCollision = true;
 
@@ -89,6 +104,7 @@ private:
 	void activateMovement();
 	void rotatePlayerBasedOnHand();
 	void moveOnPlayerForward( float DeltaTime );
+	void UpdateMaximumAltitudeTimeSpent( float DeltaTime );
 
 	int poseIndex = 0;
 
@@ -110,6 +126,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ScoreTracking")
 	float GetCurrentScore() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float CalculateRemainingTimeAtMaximumAltitude() const
+	{ 
+		return maxTimeSpentInMaximumAltitudeSeconds - currentTimeSpentInMaximumAltitudeSeconds; 
+	};
+
+	float GetSpeed() const { return characterSpeed; }
 
 	void AddScore(float addedPoints);
 

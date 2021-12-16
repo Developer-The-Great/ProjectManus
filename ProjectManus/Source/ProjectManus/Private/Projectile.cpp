@@ -17,8 +17,6 @@ AProjectile::AProjectile()
 
 void AProjectile::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!spawnerActor) { return;  }
-
 	if (OtherActor != spawnerActor)
 	{
 		Destroy(); 
@@ -43,15 +41,8 @@ void AProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector newLocation = GetActorLocation() + GetActorForwardVector() * projectileSpeed * DeltaTime;
-	SetActorLocation( newLocation );
+	SetActorLocation( newLocation ,true);
 
-	/*DrawDebugLine(
-		GetWorld(),
-		GetActorLocation(),
-		GetActorLocation() + GetActorForwardVector() * projectileSpeed,
-		FColor(255, 0, 0),
-		false, -1, 100,
-		12.333
-	);*/
+
 }
 

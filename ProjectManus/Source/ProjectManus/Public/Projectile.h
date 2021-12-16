@@ -38,6 +38,8 @@ public:
 	void SetDamageApplicationTrue() { bHasAppliedDamage = true; }
 	bool GetDamageApplicationState() { return bHasAppliedDamage; }
 
+	void SetProjectileSpeed(float aSpeed) { projectileSpeed = aSpeed; }
+
 	void BindOverlap();
 	
 protected:

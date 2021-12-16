@@ -19,13 +19,20 @@ float AStarGridPathfindingQueryFilter::GetHeuristicScale() const
 
 float AStarGridPathfindingQueryFilter::GetHeuristicCost(const FIntVector& StartNode, const FIntVector& EndNode) const
 {
-	return FMath::Abs(StartNode.X - EndNode.X) + FMath::Abs(StartNode.Y - EndNode.Y) 
-		+ FMath::Abs(StartNode.Z - EndNode.Z);
+	int zAltitudeLimit = gridNavigationActor->GetAltitudeLimitInGrid();
+
+	float costMultiplier = EndNode.Z > zAltitudeLimit ? 2.0f : 1.0f;
+
+	return FMath::Abs(StartNode.X - EndNode.X) + FMath::Abs(StartNode.Y - EndNode.Y) + FMath::Abs(StartNode.Z - EndNode.Z) * costMultiplier;
 }
 
 float AStarGridPathfindingQueryFilter::GetTraversalCost(const FIntVector& StartNode, const FIntVector& EndNode) const
 {
-	return 1.0f;
+	int zAltitudeLimit = gridNavigationActor->GetAltitudeLimitInGrid();
+
+	float costMultiplier = EndNode.Z > zAltitudeLimit ? 2.0f : 1.0f;
+
+	return FVector(StartNode.X - EndNode.X, StartNode.Y - EndNode.Y, StartNode.Z - EndNode.Z).Size() * costMultiplier;
 }
 
 bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA, const FIntVector NodeB) const
@@ -98,6 +105,7 @@ bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA,
 		FIntVector diagonalNeigborInXYPlaneOffset  (traversalVector.X, traversalVector.Y, 0);
 		FIntVector diagonalNeigborInXYPlaneOffset2 (traversalVector.X, 0, traversalVector.Z);
 		FIntVector diagonalNeigborInXYPlaneOffset3 (0, traversalVector.Y, traversalVector.Z);
+
 
 		if (!gridActor->IsGridCellWalkable(startNode + diagonalNeigborInXYPlaneOffset) ||
 			!gridActor->IsGridCellWalkable(startNode + diagonalNeigborInXYPlaneOffset2)||

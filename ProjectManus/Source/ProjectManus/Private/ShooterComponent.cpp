@@ -3,6 +3,7 @@
 
 #include "ShooterComponent.h"
 #include "Projectile.h"
+#include "DrawDebugHelpers.h"
 
 void UShooterComponent::BeginFire()
 {
@@ -29,14 +30,21 @@ void UShooterComponent::FireProjectile()
 	AActor* actor = GetOwner();
 	FVector actorForward = actor->GetActorForwardVector();
 
+	if (useOwnerDir)
+	{
+		shootDirection = actor->GetActorForwardVector();
+	}
+
 	AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(projectileToSpawn,
-		GetComponentLocation() + actorForward * 50.0f, actorForward.Rotation(),
+		GetComponentLocation() , shootDirection.Rotation(),
 		spawnParams);
 
 	if (projectile)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("PROJECTILE SPAWNED"));
 		projectile->SetSpawnerActor(actor);
 		projectile->BindOverlap();
+		projectile->SetProjectileSpeed(projectileSpeed);
 	}
 	else
 	{
