@@ -38,6 +38,8 @@ public:
 
 	float CalculateLayerProgress(int index);
 
+	std::pair<FVector, FVector> GetWaypointLine(int index);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

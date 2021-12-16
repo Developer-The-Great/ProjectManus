@@ -139,23 +139,63 @@ float AWaypointOrganizer::CalculateLayerProgress(int index)
 
 	FVector playerLoc = playerActor->GetActorLocation();
 
-	int waypointIndex = static_cast<int>( CalculateWaypointProgress( playerLoc ) );
+	int closestWayPoint = -1;
+	float lowestPointDistance = TNumericLimits<float>::Max();
+	FVector closestPointInLine;
 
-	if (waypointIndex == waypointArray.Num() - 1)
+	for (size_t i = 0; i < waypointArray.Num() - 1; i++)
 	{
-		return waypointIndex;
+		FVector currentPointInLine = FMath::ClosestPointOnSegment(playerLoc,
+			waypointArray[i]->GetActorLocation(), waypointArray[i + 1]->GetActorLocation());
+
+		float pointDistance = FVector(currentPointInLine - playerLoc).Size();
+
+		if (pointDistance < lowestPointDistance)
+		{
+			lowestPointDistance = pointDistance;
+			closestPointInLine = currentPointInLine;
+			closestWayPoint = i;
+		}
 	}
 
-	FVector normWaypointDir(waypointArray[waypointIndex + 1]->GetActorLocation() -
-		waypointArray[waypointIndex]->GetActorLocation());
+	float waypointToNextCost = FVector(closestPointInLine - waypointArray[closestWayPoint]->GetActorLocation() ).Size();
+	float entireClosestWaypointCost = FVector(waypointArray[closestWayPoint + 1]->GetActorLocation() - waypointArray[closestWayPoint]->GetActorLocation()).Size();
 
-	normWaypointDir.Normalize();
+	float result = closestWayPoint + (waypointToNextCost / entireClosestWaypointCost);
 
-	FVector offset = normWaypointDir * layerOffset[0];
+	//get closest line index
+	float offsetFromWaypointBudget = layerOffset[0];
+	FVector currentClosestPoint = closestPointInLine;
 
-	FVector layerWorldLoc = playerLoc + offset;
+	UE_LOG(LogTemp, Warning, TEXT("result index %f"), result);
 
-	return CalculateWaypointProgress(layerWorldLoc);
+	for (size_t i = closestWayPoint; i < waypointArray.Num()-1; i++)
+	{
+		float costToNextWaypoint = FVector(waypointArray[i + 1]->GetActorLocation() - currentClosestPoint).Size();
+
+		if (costToNextWaypoint > offsetFromWaypointBudget)
+		{
+			float entireWaypointCost = FVector(waypointArray[i + 1]->GetActorLocation() - waypointArray[i]->GetActorLocation()).Size();
+
+			result += ( (entireWaypointCost - costToNextWaypoint ) / entireWaypointCost);
+			break;
+		}
+		else
+		{
+			result += 1.0f;
+			offsetFromWaypointBudget -= costToNextWaypoint;
+			currentClosestPoint = waypointArray[i+1]->GetActorLocation();
+
+		}
+
+	}
+
+	return result;
+}
+
+std::pair<FVector, FVector> AWaypointOrganizer::GetWaypointLine(int index)
+{
+	return std::make_pair(waypointArray[index]->GetActorLocation(), waypointArray[index + 1]->GetActorLocation());
 }
 
 

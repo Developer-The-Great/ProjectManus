@@ -106,6 +106,7 @@ bool AStarGridPathfindingQueryFilter::IsTraversalAllowed(const FIntVector NodeA,
 		FIntVector diagonalNeigborInXYPlaneOffset2 (traversalVector.X, 0, traversalVector.Z);
 		FIntVector diagonalNeigborInXYPlaneOffset3 (0, traversalVector.Y, traversalVector.Z);
 
+
 		if (!gridActor->IsGridCellWalkable(startNode + diagonalNeigborInXYPlaneOffset) ||
 			!gridActor->IsGridCellWalkable(startNode + diagonalNeigborInXYPlaneOffset2)||
 			!gridActor->IsGridCellWalkable(startNode + diagonalNeigborInXYPlaneOffset3) )

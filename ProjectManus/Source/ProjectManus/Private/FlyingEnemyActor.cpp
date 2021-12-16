@@ -103,23 +103,35 @@ void AFlyingEnemyActor::UpdateWaypoint()
 	}
 }
 
-void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem()
+void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem(float DeltaTime)
 {
 
 	float playerProgress = waypointOrganizer->CalculateLayerProgress(0);
-	float selfProgress = waypointOrganizer->CalculateWaypointProgress( GetActorLocation() );
+
+	float selfProgress = calculateSelfWaypointProgress();
 
 	float diff = playerProgress - selfProgress;
 
-	int mult = diff < 0 ? -1 : 1;
-	float boost = FMath::Abs(diff) > 0.1f ? 100.0f : 0;
+	if (diff > 0.2f)
+	{
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 3000, 0.02f, 100);
+	}
+	else if (diff < -0.2f)
+	{
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 1000, 0.02f, 100);
+	}
+	else
+	{
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 2000, 0.02f, 100);
+	}
 
-	movementComponent->MaxSpeed += ( 25 * (diff )) + boost * mult;
 
-	movementComponent->MaxSpeed = FMath::Clamp( movementComponent->MaxSpeed, 1000.0f, 8000.0f );
+	
 
-	UE_LOG(LogTemp, Warning, TEXT("movementComponent->MaxSpeed %f"), movementComponent->MaxSpeed);
-
+	UE_LOG(LogTemp, Warning, TEXT("UpdateMovementSpeedWithLayerSystem()"));
+	UE_LOG(LogTemp, Warning, TEXT("		playerProgress %f"), playerProgress);
+	UE_LOG(LogTemp, Warning, TEXT("		selfProgress %f"), selfProgress);
+	UE_LOG(LogTemp, Warning, TEXT("		movementComponent->MaxSpeed %f"), movementComponent->MaxSpeed);
 }
 
 void AFlyingEnemyActor::SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer)
@@ -129,7 +141,6 @@ void AFlyingEnemyActor::SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrgani
 
 void AFlyingEnemyActor::ShootPlayer()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ShootPlayer"));
 	//no player cant shoot player
 	if (!player) { UE_LOG(LogTemp, Warning, TEXT("ERROR NO PLAYER"));  return; }
 
@@ -152,8 +163,6 @@ void AFlyingEnemyActor::ShootPlayer()
 
 	//enemy is behind player, dont shoot
 	if (dx < 100.0f) { UE_LOG(LogTemp, Warning, TEXT("ENEMY BEHIND PLAYER"));  return; }
-
-	UE_LOG(LogTemp, Warning, TEXT("P %f"), P);
 
 	float dy = ((selfToPlayer) - (forward * dx)).Size();
 
@@ -214,7 +223,7 @@ void AFlyingEnemyActor::Tick(float DeltaTime)
 {
 	if (bHasReachedStartPoint)
 	{
-		UpdateMovementSpeedWithLayerSystem();
+		UpdateMovementSpeedWithLayerSystem(DeltaTime);
 	}
 
 	if (player)
@@ -224,5 +233,23 @@ void AFlyingEnemyActor::Tick(float DeltaTime)
 	
 	//ShootPlayer();
 
+}
+
+float AFlyingEnemyActor::calculateSelfWaypointProgress() const
+{
+	int currentWaypoint = currentWaypointIndex - 1;
+
+	if (currentWaypoint < 0) { return 0.0f; }
+
+	auto waypointLinePair = waypointOrganizer->GetWaypointLine(currentWaypoint);
+
+	FVector closestPoint = UKismetMathLibrary::FindClosestPointOnSegment(GetActorLocation(), waypointLinePair.first, waypointLinePair.second);
+
+	FVector waypointVec = waypointLinePair.second - waypointLinePair.first;
+
+	float waypointLineLength;
+	waypointVec.ToDirectionAndLength(waypointVec, waypointLineLength);
+	
+	return currentWaypoint + FVector::DotProduct(closestPoint - waypointLinePair.first,waypointVec)/waypointLineLength;
 }
 

@@ -97,7 +97,7 @@ public:
 	void SetStartPoint(const FVector& startPoint) { firstStartPoint = startPoint; }
 
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
-	void UpdateMovementSpeedWithLayerSystem();
+	void UpdateMovementSpeedWithLayerSystem(float DeltaTime);
 
 	void SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer);
 
@@ -115,5 +115,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	float GetPointsReceived() const { return pointsReceived; }
+
+private:
+
+	float calculateSelfWaypointProgress() const;
+	
 
 };
