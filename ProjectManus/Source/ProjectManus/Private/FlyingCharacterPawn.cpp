@@ -84,6 +84,8 @@ void AFlyingCharacterPawn::BeginPlay()
 
 	planeMesh->OnComponentHit.AddDynamic(this, &AFlyingCharacterPawn::OnCollision);
 	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AFlyingCharacterPawn::OnProjectileOverlap);
+	healthComponent->OnHealthChangedEvent.AddDynamic(this, &AFlyingCharacterPawn::CharacterHealthChangedCallback);
+	OnGameFinished.AddDynamic(this, &AFlyingCharacterPawn::FinishedGameCallback);
 
 	characterSpeedCached = characterSpeed;
 
@@ -213,6 +215,11 @@ void AFlyingCharacterPawn::UpdateMaximumAltitudeTimeSpent(float DeltaTime)
 {
 	if (GetActorLocation().Z > maximumAltitude)
 	{
+		if (currentTimeSpentInMaximumAltitudeSeconds == 0.0f)
+		{
+			OnFirstTimeAtAltitudeLimit();
+		}
+
 		currentTimeSpentInMaximumAltitudeSeconds += DeltaTime;
 	}
 	else
@@ -222,6 +229,8 @@ void AFlyingCharacterPawn::UpdateMaximumAltitudeTimeSpent(float DeltaTime)
 
 	if(currentTimeSpentInMaximumAltitudeSeconds > maxTimeSpentInMaximumAltitudeSeconds)
 	{
+		OnHitByLaser();
+		OnGameFinished.Broadcast(false);
 		Destroy();
 	}
 	
@@ -241,20 +250,55 @@ bool AFlyingCharacterPawn::checkRightHandPointingUp()
 	return angleFromUp < shieldActivationAngleDegrees;
 }
 
+void AFlyingCharacterPawn::DisablePlayer()
+{
+	characterSpeed = 0;
+	healthComponent->currentHealth = TNumericLimits<int>::Max();
+}
+
+void AFlyingCharacterPawn::CharacterHealthChangedCallback(float newHealth, float Damage, AActor* DamageCauser)
+{
+	UE_LOG(LogTemp, Warning, TEXT("char callback %f"), newHealth);
+
+	if (newHealth <= 0.0f)
+	{
+		OnGameFinished.Broadcast(false);
+	}
+
+}
+
+void AFlyingCharacterPawn::FinishedGameCallback(bool isPlayerWin)
+{
+	UE_LOG(LogTemp, Warning, TEXT("FinishedGameCallback"));
+	if (isPlayerWin)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Disabled!"));
+		DisablePlayer();
+	}
+}
+
 void AFlyingCharacterPawn::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (auto projectile = dynamic_cast<AProjectile*>(OtherActor) )
 	{
+		UE_LOG(LogTemp, Warning, TEXT("		Casted"));
+
 		if (projectile->GetSpawnerActor() != this)
 		{
 			if (!shieldComponent->GetShieldActiveState())
 			{
+				UE_LOG(LogTemp, Warning, TEXT("		Damage"));
+				OnHitByProjectile();
 				UGameplayStatics::ApplyDamage(this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass());
 			}
 			else
 			{
+				UE_LOG(LogTemp, Warning, TEXT("		Shield"));
 				shieldComponent->DamageShield(1.0f);
+				OnHitShield();
 			}
+
+			projectile->Destroy();
 		}
 		
 	}
@@ -277,11 +321,13 @@ void AFlyingCharacterPawn::OnCollision( UPrimitiveComponent* HitComponent, AActo
 		if ( ! shieldComponent->GetShieldActiveState())
 		{
 			UGameplayStatics::ApplyDamage( this, 1.0f, nullptr, OtherActor, UDamageType::StaticClass() );
+			OnHitEnviroment();
 		}
 		else
 		{
 			float damageDone = dynamic_cast<AFlyingEnemyActor*>(OtherActor) ? shieldDamageOnEnemy : shieldDamageOnTerrain;
 			shieldComponent->DamageShield(damageDone);
+			OnHitShield();
 		}
 	
 	}
@@ -328,7 +374,10 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 	if ( poseIndex == 3 && checkRightHandPointingUp() )
 	{
 		bool activated = shieldComponent->TryActivateShield();
-		if (activated) { UE_LOG(LogTemp, Warning, TEXT("PLAYER -> SHIELD %d"), activated) };
+		if (activated) 
+		{ 
+			UE_LOG(LogTemp, Warning, TEXT("PLAYER -> SHIELD %d"), activated) 
+		};
 		
 	}
 

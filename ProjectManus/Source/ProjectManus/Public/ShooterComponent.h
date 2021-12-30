@@ -8,6 +8,8 @@
 
 class AProjectile;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnProjectileShootSignature);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTMANUS_API UShooterComponent : public USceneComponent
 {
@@ -85,5 +87,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+		FOnProjectileShootSignature OnShootProjectile;
 		
 };

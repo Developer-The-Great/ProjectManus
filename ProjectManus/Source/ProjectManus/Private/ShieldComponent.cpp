@@ -24,6 +24,7 @@ bool UShieldComponent::TryActivateShield()
 
 		SetShieldActive(true);
 		canShieldBeActivated = false;
+		OnShieldEnabled.Broadcast();
 
 		return true;
 
@@ -45,6 +46,8 @@ void UShieldComponent::DamageShield(float damage)
 	if (shieldHealthCurrent <= 0.0f)
 	{
 		SetShieldActive(false);
+
+		OnShieldDisabled.Broadcast();
 
 		GetOwner()->GetWorldTimerManager().SetTimer
 		(

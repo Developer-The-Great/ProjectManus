@@ -37,12 +37,12 @@ void AWaypointActor::Tick(float DeltaTime)
 
 FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 {
-	UE_LOG(LogTemp, Warning, TEXT("CalculateOffsetedWaypointDestination()"));
+	//UE_LOG(LogTemp, Warning, TEXT("CalculateOffsetedWaypointDestination()"));
 
 	if (possiblePositionIndices.Num() == 0) { return GetActorLocation(); }
 
 
-	UE_LOG(LogTemp, Warning, TEXT("possiblePositionIndices.Num() != 0"));
+	//UE_LOG(LogTemp, Warning, TEXT("possiblePositionIndices.Num() != 0"));
 	//calculate random index
 	
 	FVector resultPosition;
@@ -63,7 +63,7 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 
 	if (foundFilled)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FURTHEST POINT FIND"));
+		//UE_LOG(LogTemp, Warning, TEXT("FURTHEST POINT FIND"));
 
 		TArray<float> positionScore;
 		positionScore.Init(-1.0f, possiblePositionFillState.Num());
@@ -107,7 +107,7 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("RANDOM POS FIND"));
+		//UE_LOG(LogTemp, Warning, TEXT("RANDOM POS FIND"));
 		finalIndex = FMath::RandRange(0, possiblePositionIndices.Num() - 1);
 
 	}

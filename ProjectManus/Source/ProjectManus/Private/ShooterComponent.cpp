@@ -27,6 +27,7 @@ void UShooterComponent::FireProjectile()
 	FActorSpawnParameters spawnParams;
 	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+
 	AActor* actor = GetOwner();
 	FVector actorForward = actor->GetActorForwardVector();
 
@@ -41,10 +42,9 @@ void UShooterComponent::FireProjectile()
 
 	if (projectile)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PROJECTILE SPAWNED"));
 		projectile->SetSpawnerActor(actor);
-		projectile->BindOverlap();
 		projectile->SetProjectileSpeed(projectileSpeed);
+		projectile->BindOverlap();
 	}
 	else
 	{
@@ -52,6 +52,8 @@ void UShooterComponent::FireProjectile()
 	}
 
 	currentAmno--;
+
+	OnShootProjectile.Broadcast();
 }
 
 void UShooterComponent::EndFire()

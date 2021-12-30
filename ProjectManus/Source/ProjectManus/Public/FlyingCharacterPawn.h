@@ -12,6 +12,8 @@ class UShooterComponent;
 class UShieldComponent;
 class UScoreTrackerComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameFinishedSignature,bool, isPlayerWin);
+
 UCLASS()
 class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
 {
@@ -69,7 +71,7 @@ private:
 	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float maximumAltitude = 3480.0f;
 
-	UPROPERTY(Category = "Movement", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "Movement", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float maxTimeSpentInMaximumAltitudeSeconds = 3.0f;
 
 	float currentTimeSpentInMaximumAltitudeSeconds = 0.0f;
@@ -115,6 +117,13 @@ private:
 	UPROPERTY(Category = "Shield Activation", EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float shieldActivationAngleDegrees = 30.0f;
 
+	void DisablePlayer();
+
+	UFUNCTION()
+	void CharacterHealthChangedCallback(float newHealth, float Damage, AActor* DamageCauser);
+
+	UFUNCTION()
+		void FinishedGameCallback(bool isPlayerWin);
 
 public:
 
@@ -140,6 +149,22 @@ public:
 	// Sets default values for this pawn's properties
 	AFlyingCharacterPawn();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+		void OnHitEnviroment();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+		void OnHitByProjectile();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+		void OnHitByLaser();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+		void OnFirstTimeAtAltitudeLimit();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+		void OnHitShield();
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -150,5 +175,8 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnGameFinishedSignature OnGameFinished;
 
 };

@@ -20,7 +20,7 @@ class PROJECTMANUS_API AFlyingEnemyActor : public APawn
 	GENERATED_BODY()
 
 private:
-	AActor* player = nullptr;
+	TWeakObjectPtr<AActor> player = nullptr;
 
 	TArray<UBoxComponent*> movementOptionBoxes;
 
@@ -106,6 +106,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void ShootPlayer();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+	void OnHitByProjectile();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+	void OnHitPlayer();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
+	void OnShootProjectile();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -120,5 +129,5 @@ private:
 
 	float calculateSelfWaypointProgress() const;
 	
-
+	FTimerHandle projectileFiringTimeHandle;
 };

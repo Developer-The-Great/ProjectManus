@@ -6,6 +6,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "ShieldComponent.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShieldEnabledSignature);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShieldDisabledSignature);
+
 /**
  * 
  */
@@ -51,4 +56,10 @@ public:
 	bool GetShieldActiveState() const { return isShieldActive; }
 
 	void DamageShield(float damage);
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FShieldEnabledSignature OnShieldEnabled;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FShieldDisabledSignature OnShieldDisabled;
 };

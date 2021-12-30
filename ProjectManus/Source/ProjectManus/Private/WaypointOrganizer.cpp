@@ -27,7 +27,7 @@ FVector AWaypointOrganizer::GetNextWaypoint(int waypointIndex) const
 		return FVector();
 
 	}
-	UE_LOG(LogTemp, Warning, TEXT("GetNextWaypoint"));
+
 	return waypointArray[waypointIndex]->CalculateOffsetedWaypointDestination();
 }
 
@@ -166,8 +166,6 @@ float AWaypointOrganizer::CalculateLayerProgress(int index)
 	//get closest line index
 	float offsetFromWaypointBudget = layerOffset[0];
 	FVector currentClosestPoint = closestPointInLine;
-
-	UE_LOG(LogTemp, Warning, TEXT("result index %f"), result);
 
 	for (size_t i = closestWayPoint; i < waypointArray.Num()-1; i++)
 	{
