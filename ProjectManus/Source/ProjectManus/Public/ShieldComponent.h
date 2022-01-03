@@ -57,6 +57,9 @@ public:
 
 	void DamageShield(float damage);
 
+	UFUNCTION(BlueprintCallable, Category = "Shield")
+	float GetShieldHealth() const { return isShieldActive ? shieldHealthCurrent : 0.0f; }
+
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FShieldEnabledSignature OnShieldEnabled;
 

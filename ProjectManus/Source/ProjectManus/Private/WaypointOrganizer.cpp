@@ -135,7 +135,7 @@ float AWaypointOrganizer::CalculateWaypointProgress(const FVector& layerPoint) c
 
 float AWaypointOrganizer::CalculateLayerProgress(int index)
 {
-	if (!playerActor) { return 1.0f; }
+	if (!playerActor.IsValid()) { return 1.0f; }
 
 	FVector playerLoc = playerActor->GetActorLocation();
 
