@@ -18,7 +18,7 @@ class PROJECTMANUS_API AWaypointOrganizer : public AActor
 private:
 	TArray<AWaypointActor*> waypointArray;
 
-	AActor* playerActor = nullptr;
+	TWeakObjectPtr<AActor> playerActor = nullptr;
 
 	UPROPERTY(Category = "AI Layer System", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TArray<float> layerOffset;
