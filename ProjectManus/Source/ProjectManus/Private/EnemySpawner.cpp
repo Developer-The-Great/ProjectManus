@@ -21,7 +21,7 @@ void AEnemySpawner::OnOverlapComponent(UPrimitiveComponent* OverlappedComponent,
 		AActor* enemyAsActor = GetWorld()->SpawnActor(classToSpawn, &spawnLocation->GetComponentTransform(), spawnParams);
 		AFlyingEnemyActor* enemy = dynamic_cast<AFlyingEnemyActor*>(enemyAsActor);
 
-		enemy->DirectSetWaypointIndex(firstWayPointDestination->GetWaypointIndex());
+		enemy->DirectSetWaypointIndex(firstWayPointDestination->GetWaypointIndex(),waypointOrganizer->GetWaypointCount());
 		enemy->SetStartPoint(goToAfterSpawnDestination->GetComponentLocation());
 		enemy->SetWaypointOrganizer(waypointOrganizer);
 		enemy->SetPlayer(playerActor);

@@ -34,6 +34,8 @@ public:
 
 	void UpdateWaypoint(int& waypointIndex);
 
+	int GetWaypointCount() const { return waypointArray.Num(); }
+
 	float CalculateWaypointProgress(const FVector& layerPoint) const;
 
 	float CalculateLayerProgress(int index);

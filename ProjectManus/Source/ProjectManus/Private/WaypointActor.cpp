@@ -122,7 +122,7 @@ FVector AWaypointActor::CalculateOffsetedWaypointDestination()
 	resultPosition = lowestAvailablePosition
 		+ FVector(0.0f, indexPosition.X * offset, 0.0f) + FVector(0.0f, 0.0f, indexPosition.Y * offset);
 
-	DrawDebugSphere(GetWorld(), resultPosition, 50.0f, 5, FColor::Red, true);
+	//DrawDebugSphere(GetWorld(), resultPosition, 50.0f, 5, FColor::Red, true);
 
 	return resultPosition;
 }
