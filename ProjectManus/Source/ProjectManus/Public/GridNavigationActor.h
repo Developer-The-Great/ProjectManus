@@ -42,6 +42,12 @@ public:
 	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	USceneComponent* enemyAltitudeLimit;
 
+	UPROPERTY(Category = "Editor Helpers", EditAnywhere)
+	USceneComponent* minDraw;
+
+	UPROPERTY(Category = "Editor Helpers", EditAnywhere)
+	USceneComponent* maxDraw;
+
 	UPROPERTY(Category = "Navigation Parameters", EditAnywhere)
 	FIntVector navigationGridBlockDimensions;
 

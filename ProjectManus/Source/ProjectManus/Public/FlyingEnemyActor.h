@@ -28,6 +28,7 @@ private:
 	float mLineLength;
 
 	int currentWaypointIndex = 0;
+	int finalWaypointIndex = 0;
 
 	AWaypointOrganizer* waypointOrganizer = nullptr;
 
@@ -58,7 +59,7 @@ public:
 
 	int GetCurrentWaypointIndex() const { return currentWaypointIndex; }
 
-	void SetWaypointIndex(int newIndex) { currentWaypointIndex = newIndex; }
+	void SetWaypointIndex(int newIndex) { currentWaypointIndex = newIndex;  }
 
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor,
@@ -82,7 +83,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void UpdateWaypoint();
 
-	void DirectSetWaypointIndex(int index) { currentWaypointIndex = index; }
+	void DirectSetWaypointIndex(int index, int pFinalWaypointIndex) { currentWaypointIndex = index; finalWaypointIndex = pFinalWaypointIndex; }
 
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
 	void DeclareReachedStartPoint() { bHasReachedStartPoint = true; }
@@ -130,4 +131,6 @@ private:
 	float calculateSelfWaypointProgress() const;
 	
 	FTimerHandle projectileFiringTimeHandle;
+
+	FVector upDir = FVector(0, 0, 1);
 };

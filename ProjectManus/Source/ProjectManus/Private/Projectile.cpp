@@ -3,6 +3,9 @@
 
 #include "Projectile.h"
 #include "DrawDebugHelpers.h"
+#include "FlyingCharacterPawn.h"
+#include "FlyingEnemyActor.h"
+#include "Engine/StaticMeshActor.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -17,25 +20,32 @@ AProjectile::AProjectile()
 
 void AProjectile::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnProjectileOverlap FROM PROJECTILE"));
+	//UE_LOG(LogTemp, Warning, TEXT("OnProjectileOverlap FROM PROJECTILE %s"),*(OtherActor->GetName()) );
 
-	if (OtherActor != spawnerActor)
+	if (OtherActor == spawnerActor)
 	{
-		//spawnerActor = nullptr;
-		planeMesh->SetVisibility(false);
-
-		//Destroy(); 
+		return;
 		
 	}
-
+	
 	bool isOtherProjectile = dynamic_cast<AProjectile*>(OtherActor) != nullptr;
+	bool isEnviroment = dynamic_cast<AStaticMeshActor*>(OtherActor) != nullptr; //|| dynamic_cast<AFlyingEnemyActor*>(OtherActor) == nullptr;
+	
 
-	//if(autodynamic_cast<AProjectile*>)
-	if (isOtherProjectile)
+	if(isEnviroment) 
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("isEnviroment"));
+	}
+	else
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("NOT Enviroment"));
+	}
+
+
+	if (isOtherProjectile || isEnviroment)
 	{
 		Destroy();
 	}
-	
 }
 
 void AProjectile::BindOverlap()

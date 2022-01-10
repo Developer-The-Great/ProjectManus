@@ -19,6 +19,12 @@ AGridNavigationActor::AGridNavigationActor()
 
 	enemyAltitudeLimit = CreateDefaultSubobject<USceneComponent>(TEXT("AltitudeLimit"));
 	enemyAltitudeLimit->SetupAttachment(actorRoot);
+
+	minDraw = CreateDefaultSubobject<USceneComponent>(TEXT("minDraw"));
+	maxDraw = CreateDefaultSubobject<USceneComponent>(TEXT("maxDraw"));
+
+	minDraw->SetupAttachment(actorRoot);
+	maxDraw->SetupAttachment(actorRoot);
 }
 
 void AGridNavigationActor::SetNodeBlockedState(const FIntVector& gridPosition, bool newNodeState)
@@ -30,7 +36,10 @@ void AGridNavigationActor::OnConstruction(const FTransform& Transform)
 {
 	UE_LOG(LogTemp, Warning, TEXT("NAVIGATION CONSTRUCTION!"));
 
-	auto debugDrawUpdatedGrid = [this]()
+	FIntVector minDrawInGrid = GetGridPositionFromWorldPosition(minDraw->GetComponentLocation());
+	FIntVector maxDrawInGrid = GetGridPositionFromWorldPosition(maxDraw->GetComponentLocation());
+
+	auto debugDrawUpdatedGrid = [this,minDrawInGrid,maxDrawInGrid]()
 	{
 		FVector gridStartPosition = GetActorLocation();
 
@@ -48,9 +57,17 @@ void AGridNavigationActor::OnConstruction(const FTransform& Transform)
 				{
 					if ( ! IsGridCellWalkable({ x,y,z }) )
 					{
-						/*DrawDebugBox(GetWorld(),
+						if (z > minDrawInGrid.Z && z < maxDrawInGrid.Z &&
+							y > minDrawInGrid.Y && y < maxDrawInGrid.Y &&
+							x > minDrawInGrid.X && x < maxDrawInGrid.X)
+						{
+							DrawDebugBox(GetWorld(),
 							GetWorldPositionFromGridPosition({ x,y,z }),
-							blockDimensions * 0.5f, FColor::Green, false, 5.0f, 100);*/
+							blockDimensions * 0.5f, FColor::Green, false, 5.0f);
+						}
+
+
+						
 					}
 				}
 			}

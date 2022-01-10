@@ -119,18 +119,31 @@ void AFlyingEnemyActor::UpdateMovementSpeedWithLayerSystem(float DeltaTime)
 
 	float diff = playerProgress - selfProgress;
 
-	if (diff > 0.2f)
+	float mult = 1.0f;
+
+	float threshold = 0.17f;
+
+	if (diff > threshold)
 	{
-		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 3000, 0.02f, 100);
+		mult = 0.75f + ( (diff - threshold) / threshold );
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 3000, DeltaTime, 100 * mult);
 	}
-	else if (diff < -0.2f)
+	else if (diff < -threshold)
 	{
-		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 1000, 0.02f, 100);
+		mult = 0.5f + ( (FMath::Abs(diff) - threshold) / threshold);
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 1000, DeltaTime, 100 * mult);
 	}
 	else
 	{
-		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 2000, 0.02f, 100);
+		movementComponent->MaxSpeed = FMath::FInterpTo(movementComponent->MaxSpeed, 2000, DeltaTime, 100);
 	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("player progress %f"), playerProgress);
+	//UE_LOG(LogTemp, Warning, TEXT("enemy progress %f"), selfProgress);
+
+
+
+
 }
 
 void AFlyingEnemyActor::SetWaypointOrganizer(AWaypointOrganizer* aWaypointOrganizer)
@@ -222,23 +235,76 @@ void AFlyingEnemyActor::BeginPlay()
 // Called every frame
 void AFlyingEnemyActor::Tick(float DeltaTime)
 {
-	if (bHasReachedStartPoint)
+	UpdateMovementSpeedWithLayerSystem(DeltaTime);
+
+	if ((currentWaypointIndex + 1) == finalWaypointIndex)
 	{
-		UpdateMovementSpeedWithLayerSystem(DeltaTime);
+
+		UE_LOG(LogTemp, Warning, TEXT("Cleared at final"));
+
+		GetWorldTimerManager().ClearTimer(projectileFiringTimeHandle);
 	}
 	
 	if (player.IsValid() )
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LOOK AT PLAYER"));
-		planeMesh->SetWorldRotation( FVector::CrossProduct(player->GetActorLocation() - GetActorLocation(),FVector::UpVector) .ToOrientationRotator());
+		planeMesh->SetWorldRotation( FVector::CrossProduct(player->GetActorLocation() - GetActorLocation(), upDir) .ToOrientationRotator());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NO PLAYER OR PLAYER DESTROYED"));
 		GetWorldTimerManager().ClearTimer(projectileFiringTimeHandle);
+		return;
 	}
-	//ShootPlayer();
+
 	
+
+
+	FVector currentVelocity = movementComponent->Velocity;
+
+	//UE_LOG(LogTemp, Warning, TEXT("velocity %s"),(*currentVelocity.ToString()));
+
+	if( FMath::IsNearlyEqual( currentVelocity.Size() , 0.0f ) ) 
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("velocity of enemy is zero"));
+		upDir = FVector::UpVector;
+		return;
+	}
+
+	FVector enemyFaceDirection = GetActorLocation() - player->GetActorLocation();
+	
+	FVector forwardRightCross = UKismetMathLibrary::Cross_VectorVector(enemyFaceDirection, FVector(0, 0, 1));
+
+	float velDotRight = UKismetMathLibrary::Dot_VectorVector(forwardRightCross, currentVelocity);
+	float velDotInverseRight = UKismetMathLibrary::Dot_VectorVector(-forwardRightCross, currentVelocity);
+
+	float sign = velDotRight > velDotInverseRight ? 1 :-1;
+
+	forwardRightCross *= sign;
+
+	currentVelocity.Normalize();
+	enemyFaceDirection.Normalize();
+	forwardRightCross.Normalize();
+
+	float velDotActorForwardNegated =  UKismetMathLibrary::Abs(UKismetMathLibrary::Dot_VectorVector(enemyFaceDirection, currentVelocity));
+
+	FVector up = UKismetMathLibrary::Cross_VectorVector(enemyFaceDirection,FVector::RightVector);
+	up.Normalize();
+
+	if (UKismetMathLibrary::Dot_VectorVector(up, FVector::UpVector) < 0.0f)
+	{
+		up *= -1.0f;
+	}
+
+	FVector newUpDir = (forwardRightCross * (1.0f - velDotActorForwardNegated) ) + (up * (velDotActorForwardNegated) );
+	newUpDir.Normalize();
+	
+	upDir = FMath::Lerp(upDir, newUpDir, 0.02f);
+	upDir.Normalize();
+	//upDir = newUpDir;
+	UE_LOG(LogTemp, Warning, TEXT("forwardRightCross %s"), (*(forwardRightCross).ToString()));
+	UE_LOG(LogTemp, Warning, TEXT("enemyFaceDirection %s"), (*(enemyFaceDirection).ToString()));
+	UE_LOG(LogTemp, Warning, TEXT("velDotActorForwardNegated %f"), (velDotActorForwardNegated));
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwardRightCross * (1.0f - velDotActorForwardNegated) * 1000, FColor::Red, false, -1.0f, 0U, 30.0f);
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + up * (velDotActorForwardNegated) * 1000, FColor::Blue, false, -1.0f, 0U, 30.0f);
 }
 
 float AFlyingEnemyActor::calculateSelfWaypointProgress() const
