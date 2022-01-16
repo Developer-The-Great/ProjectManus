@@ -13,6 +13,7 @@ class UShieldComponent;
 class UScoreTrackerComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameFinishedSignature,bool, isPlayerWin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStartSignature);
 
 UCLASS()
 class PROJECTMANUS_API AFlyingCharacterPawn : public APawn
@@ -164,7 +165,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
 		void OnHitShield();
 
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -178,5 +178,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnGameFinishedSignature OnGameFinished;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnGameStartSignature OnGameStart;
 
 };
