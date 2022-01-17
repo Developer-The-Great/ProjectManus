@@ -165,6 +165,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Shooting")
 		void OnHitShield();
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
