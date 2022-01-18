@@ -300,9 +300,9 @@ void AFlyingEnemyActor::Tick(float DeltaTime)
 	upDir = FMath::Lerp(upDir, newUpDir, 0.02f);
 	upDir.Normalize();
 	//upDir = newUpDir;
-	UE_LOG(LogTemp, Warning, TEXT("forwardRightCross %s"), (*(forwardRightCross).ToString()));
+	/*UE_LOG(LogTemp, Warning, TEXT("forwardRightCross %s"), (*(forwardRightCross).ToString()));
 	UE_LOG(LogTemp, Warning, TEXT("enemyFaceDirection %s"), (*(enemyFaceDirection).ToString()));
-	UE_LOG(LogTemp, Warning, TEXT("velDotActorForwardNegated %f"), (velDotActorForwardNegated));
+	UE_LOG(LogTemp, Warning, TEXT("velDotActorForwardNegated %f"), (velDotActorForwardNegated));*/
 	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwardRightCross * (1.0f - velDotActorForwardNegated) * 1000, FColor::Red, false, -1.0f, 0U, 30.0f);
 	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + up * (velDotActorForwardNegated) * 1000, FColor::Blue, false, -1.0f, 0U, 30.0f);
 }

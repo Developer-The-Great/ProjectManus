@@ -51,7 +51,7 @@ void AProjectile::OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, 
 void AProjectile::BindOverlap()
 {
 	planeMesh->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnProjectileOverlap);
-
+	OnProjectileReady();
 }
 
 // Called when the game starts or when spawned

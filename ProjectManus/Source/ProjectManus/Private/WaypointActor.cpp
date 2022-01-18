@@ -172,9 +172,9 @@ void AWaypointActor::Init(bool drawResult)
 				{
 					if (drawResult)
 					{
-						DrawDebugBox(GetWorld(),
+						/*DrawDebugBox(GetWorld(),
 							blockPosition,
-							FVector(offset * 0.5f), FColor::Red, false, 5.0f, 100);
+							FVector(offset * 0.5f), FColor::Red, false, 5.0f, 100);*/
 					}
 
 					possiblePositionIndices.Add(FIntPoint(y, z));
