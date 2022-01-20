@@ -47,7 +47,7 @@ void AGridNavigationActor::OnConstruction(const FTransform& Transform)
 			FVector(navigationGridBlockDimensions.X * blockDimensions.X, navigationGridBlockDimensions.Y * blockDimensions.Y,
 				navigationGridBlockDimensions.Z * blockDimensions.Z) * 0.5f;
 
-		DrawDebugBox(GetWorld(), gridStartPosition + centerOffset, centerOffset, FColor::Blue, false, 5.0f, 100);
+		//DrawDebugBox(GetWorld(), gridStartPosition + centerOffset, centerOffset, FColor::Blue, false, 5.0f, 100);
 
 		for (int z = 0; z < navigationGridBlockDimensions.Z; z++)
 		{
@@ -61,9 +61,9 @@ void AGridNavigationActor::OnConstruction(const FTransform& Transform)
 							y > minDrawInGrid.Y && y < maxDrawInGrid.Y &&
 							x > minDrawInGrid.X && x < maxDrawInGrid.X)
 						{
-							DrawDebugBox(GetWorld(),
+							/*DrawDebugBox(GetWorld(),
 							GetWorldPositionFromGridPosition({ x,y,z }),
-							blockDimensions * 0.5f, FColor::Green, false, 5.0f);
+							blockDimensions * 0.5f, FColor::Green, false, 5.0f);*/
 						}
 
 

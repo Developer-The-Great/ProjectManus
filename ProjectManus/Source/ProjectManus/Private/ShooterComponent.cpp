@@ -61,6 +61,24 @@ void UShooterComponent::EndFire()
 	GetOwner()->GetWorldTimerManager().ClearTimer(projectileFiringTimeHandle);
 }
 
+void UShooterComponent::ClearReloadTime()
+{
+	currentReloadTime = 0.0f;
+	OnEndReload.Broadcast();
+}
+
+void UShooterComponent::AddReloadTime(float dt)
+{
+	if (currentReloadTime == 0.0f && currentAmno < defaultAmno)
+	{
+		OnBeginReload.Broadcast();
+	}
+
+	currentReloadTime += dt;
+	
+
+}
+
 // Sets default values for this component's properties
 UShooterComponent::UShooterComponent()
 {

@@ -10,6 +10,9 @@ class AProjectile;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnProjectileShootSignature);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBeginReloadSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FEndReloadSignature);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTMANUS_API UShooterComponent : public USceneComponent
 {
@@ -61,8 +64,8 @@ public:
 	void FireProjectile();
 	void EndFire();
 
-	void ClearReloadTime() { currentReloadTime = 0.0f; }
-	void AddReloadTime(float dt){ currentReloadTime += dt; }
+	void ClearReloadTime();
+	void AddReloadTime(float dt);
 	void Reload() 
 	{
 		currentAmno = defaultAmno; 
@@ -89,5 +92,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnProjectileShootSignature OnShootProjectile;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+		FBeginReloadSignature OnBeginReload;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+		FEndReloadSignature OnEndReload;
 		
 };

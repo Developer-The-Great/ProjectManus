@@ -91,8 +91,8 @@ void AFlyingCharacterPawn::BeginPlay()
 
 	FTimerHandle moveDelay;
 
-	GetWorldTimerManager().SetTimer(
-		moveDelay, this, &AFlyingCharacterPawn::activateMovement, 3.0f, false);
+	//GetWorldTimerManager().SetTimer(
+	//	moveDelay, this, &AFlyingCharacterPawn::activateMovement, 3.0f, false);
 
 }
 
@@ -381,9 +381,12 @@ void AFlyingCharacterPawn::OnReceivePoseResults(TArray<float> poseValue)
 		
 	}
 
-		//apply shield
-		//set timer for shield off
-		//set timer for shield activator
+	if ( poseIndex == 4 )
+	{
+		activateMovement();
+		UE_LOG(LogTemp, Warning, TEXT("pose index"))
+		OnGameStart.Broadcast();
+	}
 
 	poseIndex = currentFoundIndex;
 
